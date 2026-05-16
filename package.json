@@ -1,0 +1,15 @@
+{
+  "name": "allwright",
+  "private": true,
+  "scripts": {
+    "test:mobile": "cd apps/mobile && mobilewright test",
+    "test:web": "echo \"web suite not yet scaffolded\" && exit 1",
+    "test:api": "echo \"api suite not yet scaffolded\" && exit 1",
+    "test": "npm run test:mobile"
+  },
+  "devDependencies": {
+    "@mobilewright/test": "^0.0.35",
+    "mobilewright": "^0.0.35",
+    "@types/node": "latest"
+  }
+}

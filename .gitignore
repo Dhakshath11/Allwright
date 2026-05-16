@@ -1,0 +1,11 @@
+node_modules
+.env
+package-lock.json
+
+# Test artifacts (regenerated each run)
+playwright-report/
+test-results/
+mobilewright-report/
+
+# Locator-discovery dump output (used by the screen-builder skill — transient)
+_dump_output.txt
