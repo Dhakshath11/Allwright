@@ -71,6 +71,41 @@ export class MobileUtils extends CoreUtils<Locator, Screen> {
     await this.root.pressButton(button);
   }
 
+  /**
+   * Swipe the screen in a given direction repeatedly until the target
+   * element becomes visible, or `maxSwipes` is reached.
+   *
+   * Why not `scrollIntoView`? mobilewright's `scrollIntoViewIfNeeded`
+   * does not navigate every iOS scroll container — UICollectionView /
+   * UITableView -backed surfaces (e.g. iOS Contacts edit form) need an
+   * explicit gesture to scroll. This is the gesture-based alternative.
+   *
+   * `minSwipes` forces unconditional swipes before checking visibility.
+   * Use when the target reports as visible with placeholder bounds
+   * (e.g. iOS Contacts "Delete Contact" StaticText returns
+   * `isVisible: true` with `(0, 0)` bounds while off-screen) — a pure
+   * visibility-driven loop would short-circuit on the first iteration.
+   */
+  async swipeUntilVisible(
+    locator: Locator,
+    options: {
+      maxSwipes?: number;
+      minSwipes?: number;
+      direction?: SwipeDirection;
+    } = {},
+  ): Promise<void> {
+    const { maxSwipes = 8, minSwipes = 0, direction = 'up' } = options;
+    // Element may already be in view — short-circuit if no min swipes forced.
+    if (minSwipes === 0 && (await this.isVisible(locator))) return;
+    for (let i = 0; i < maxSwipes; i++) {
+      await this.root.swipe(direction, {});
+      if (i + 1 >= minSwipes && (await this.isVisible(locator))) return;
+    }
+    throw new Error(
+      `Element not visible after ${maxSwipes} '${direction}' swipes`,
+    );
+  }
+
   // ─── Assertions (use mobilewright's expect under the hood) ──────────
 
   async expectVisible(locator: Locator): Promise<void> {

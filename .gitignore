@@ -9,3 +9,6 @@ mobilewright-report/
 
 # Locator-discovery dump output (used by the screen-builder skill — transient)
 _dump_output.txt
+
+graphify-out
+**/screenshots

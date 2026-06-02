@@ -48,6 +48,7 @@ Open `_dump_output.txt`. Scan for elements worth wrapping.
 Save at `apps/mobile/sample/screens/<feature>.screen.ts` (e.g. `contacts-list.screen.ts`). Reference shape: `apps/mobile/sample/screens/contacts.screen.ts`.
 
 ```ts
+import { test } from '@mobilewright/test';
 import type { Screen, Locator } from '@mobilewright/core';
 import { MobileUtils } from '../../utils/mobile.utils';
 
@@ -68,15 +69,20 @@ export class FeatureScreen {
     // ...
   }
 
-  // Action method — named-object params, encapsulates the FULL flow
+  // Action method — named-object params, encapsulates the FULL flow.
+  // EVERY public method body is wrapped in test.step(...).
   async doSomething({ a, b }: { a: string; b: string }): Promise<void> {
-    await this.utils.tap(this.addButton);
-    // ... full flow only
+    await test.step(`Do something with ${a} and ${b}`, async () => {
+      await this.utils.tap(this.addButton);
+      // ... full flow only
+    });
   }
 
-  // Optional assertion helper
+  // Optional assertion helper — also wrapped in test.step.
   async expectThingVisible(label: string): Promise<void> {
-    await this.utils.expectVisible(this.utils.getByText(label));
+    await test.step(`Expect "${label}" visible`, async () => {
+      await this.utils.expectVisible(this.utils.getByText(label));
+    });
   }
 }
 ```
@@ -89,6 +95,7 @@ export class FeatureScreen {
 - All actions and assertions go through `this.utils` — **never** call mobilewright APIs directly.
 - Action params: **named-object literals**, never positional.
 - Actions encapsulate the **full** user flow (not partial steps).
+- **Every public method body wrapped in `test.step(name, async () => {...})`** — actions AND `expect*` helpers. Step name is imperative title-case (`'Tap Add button'`), interpolates dynamic args, never includes the screen name. `allwright-reviewer` flags missing steps as `[Critical]`.
 - Filenames: dot-descriptor, kebab in name part — `contacts-list.screen.ts`, `add-contact.screen.ts`.
 
 ## When to engage Claude (use sparingly to save tokens)

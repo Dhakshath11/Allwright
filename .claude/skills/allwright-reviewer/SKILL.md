@@ -97,6 +97,7 @@ If unsure between two levels, pick the higher one and explain why.
 - **Locators extracted to a separate `locators/` directory.** Anti-pattern in modern test frameworks. Locators must live in the screen class that uses them. If you find a `screens/locators/` folder, flag it. `[Major]`.
 - **Redundant `this.screen = screen` in constructor.** Already assigned by `constructor(private readonly screen: Screen)`. `[Nit]`.
 - **No `expectXxx` helpers.** A screen with actions but no assertions forces tests to reach into the screen's internals. Provide `expectContactVisible(name)` style helpers when assertions are screen-specific. `[Minor]`.
+- **Public screen method body NOT wrapped in `test.step(...)`.** Every public action and every `expect*` helper must wrap its body in `test.step('Imperative title-case name', async () => { ... })`. Without it, failure reports point at `core/utils/core.utils.ts:46` instead of the screen method, and the HTML report / trace viewer has no readable step tree — a hard regression against the prompt-driven QA goal. Naming: imperative mood, title-case, interpolate dynamic args, no screen-name prefix. `[Critical]`.
 
 ### 3. Locator Stability
 
@@ -310,6 +311,29 @@ The first is simpler; the second is more correct if cleanup is feasible.
 Manual QAs (the eventual product audience) shouldn't need to know about `--config`. Worse, that exact flag has a known bug in mobilewright 0.0.35 (loses the `platform` key → `Unsupported platform: "undefined"`).
 
 **Fix:** Document the surface-uniform command: `npm run test:mobile`. Internally the script handles the `cd apps/mobile && mobilewright test` workaround.
+```
+
+### Example 11: Public Screen Method Missing `test.step`
+
+```
+**`apps/mobile/sample/screens/contacts-list.screen.ts:23`** — `[Critical]` **`tapAdd()` body not wrapped in `test.step`**
+
+Public screen methods MUST wrap their body in `test.step(name, async () => {...})`. Without the step:
+1. On failure, the report attributes the error to `core/utils/core.utils.ts:46` (the inherited `tap` wrapper) instead of `tapAdd` — useless to a QA reading a CI failure.
+2. The HTML report and trace viewer don't show the action as a named, clickable step — the manual-QA debugging experience collapses.
+3. Multi-step flows lose their visible structure; the trace tree is flat.
+
+This is the convention documented in README.md (§ Screen action methods MUST use `test.step`).
+
+**Fix:**
+```ts
+async tapAdd(): Promise<void> {
+  await test.step('Tap Add button', async () => {
+    await this.utils.tap(this.addButton);
+  });
+}
+```
+Add `import { test } from '@mobilewright/test';` at the top of the file. Same applies to every other public method in this screen.
 ```
 
 ---

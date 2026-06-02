@@ -40,10 +40,20 @@ test('dump: contacts list view', async ({ screen }) => {
 test('dump: add contact form', async ({ screen }) => {
   const utils = new MobileUtils(screen);
   await utils.tap(utils.getByRole('button', 'Add'));
+  await utils.tap(utils.getByRole('button', 'Insert add phone'));
   await dump(screen, 'ADD CONTACT FORM');
 });
 
-// Add more test() blocks as needed for contact detail, edit form, search results, etc.
+// Assumes "Dhaksh Test" already exists in the Contacts app (seeded by the
+// `adds a new contact` spec). If running in a clean simulator, seed first.
+test('dump: edit contact form', async ({ screen }) => {
+  const utils = new MobileUtils(screen);
+  await utils.tap(utils.getByText('Dhaksh Test'));
+  await utils.tap(utils.getByText('Edit'));
+  await dump(screen, 'EDIT CONTACT FORM');
+});
+
+// Add more test() blocks as needed for contact detail, search results, etc.
 // Pattern:
 //   test('dump: <state name>', async ({ screen }) => {
 //     const utils = new MobileUtils(screen);

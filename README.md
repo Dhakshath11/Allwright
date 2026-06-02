@@ -73,7 +73,48 @@ Strict POM: one visible screen state = one class. To extract locators from a liv
 - **Locator selector priority**: `getByTestId` > `getByLabel` > `getByRole(role, name)` > `getByPlaceholder` > `getByText` (brittle, last resort).
 - **One screen state per class.** A list view and a form are separate screens, separate classes.
 - **Action methods encapsulate the full user flow.** Don't leak intermediate taps to the test layer.
+- **Every public screen action wraps its body in `test.step(...)`** — mandatory, no exceptions. See [Screen action methods MUST use `test.step`](#screen-action-methods-must-use-teststep).
 - **Utilities in `core/utils/` ship with unit tests** — non-negotiable. Untested helpers in a testing framework would undermine the product.
+
+## Screen action methods MUST use `test.step`
+
+Every public method on a screen object — actions (`tapAdd`, `fillBasics`, ...) and assertions (`expectAtListScreen`, `expectMobileNumber`, ...) — wraps its body in `test.step(name, async () => { ... })`. **This is non-negotiable** and applies to every screen across every surface (mobile, web, API when it lands).
+
+```ts
+import { test } from '@mobilewright/test';   // or '@playwright/test' on web
+
+async tapAdd(): Promise<void> {
+  await test.step('Tap Add button', async () => {
+    await this.utils.tap(this.addButton);
+  });
+}
+
+async expectAtListScreen(): Promise<void> {
+  await test.step('Expect at Contacts list screen', async () => {
+    await this.utils.expectVisible(this.title);
+  });
+}
+```
+
+**Why it's mandatory:**
+
+1. **Failure reports point at the screen action, not the framework.** Without a step, a failed `tap` surfaces at `core/utils/core.utils.ts:46` — useless to a QA reading a CI failure. With a step, the report points at the screen method and the test line.
+2. **The HTML report and trace viewer become a readable script.** Each step is a clickable node with screenshot, network, and console scoped to it. A non-engineer can debug a failure without opening source code.
+3. **It's the only convention that survives the prompt-driven QA end goal.** When an LLM generates tests, the manual QA reads the report — not the code. Step names *are* the documentation.
+4. **It composes.** A spec can wrap a multi-screen flow in its own `test.step(...)` and the screens' steps nest underneath. The trace becomes a tree of intent.
+
+**Step naming rules:**
+- Imperative mood, title case: `'Tap Add button'`, not `'Tapping the add button'`.
+- One step per public method body; no nested `test.step` inside a screen method.
+- Interpolate dynamic args into the name: `` `Search for "${query}"` ``, `` `Fill mobile number "${value}"` ``.
+- Don't prefix with the screen name — the trace tree already shows hierarchy.
+
+**What stays free of `test.step`:**
+- `CoreUtils` / `MobileUtils` / `WebUtils` methods (low-level primitives — they'd clutter the trace).
+- Private helpers inside screens.
+- Constructors and locator initialization.
+
+`allwright-reviewer` flags any public screen method missing `test.step` as `[Critical]`.
 
 ## Roadmap
 

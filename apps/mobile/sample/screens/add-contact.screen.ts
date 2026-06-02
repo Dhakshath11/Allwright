@@ -1,3 +1,4 @@
+import { test } from '@mobilewright/test';
 import type { Screen, Locator } from '@mobilewright/core';
 import { MobileUtils } from '../../utils/mobile.utils';
 
@@ -37,40 +38,58 @@ export class AddContactScreen {
     lastName: string;
     company: string;
   }): Promise<void> {
-    await this.utils.fill(this.firstName, firstName);
-    await this.utils.fill(this.lastName, lastName);
-    await this.utils.fill(this.company, company);
+    await test.step(`Fill basics: ${firstName} ${lastName}, ${company}`, async () => {
+      await this.utils.fill(this.firstName, firstName);
+      await this.utils.fill(this.lastName, lastName);
+      await this.utils.fill(this.company, company);
+    });
   }
 
   async save(): Promise<void> {
-    await this.utils.tap(this.done);
+    await test.step('Save new contact', async () => {
+      await this.utils.tap(this.done);
+    });
   }
 
   async cancel(): Promise<void> {
-    await this.utils.tap(this.closeButton);
+    await test.step('Cancel new contact', async () => {
+      await this.utils.tap(this.closeButton);
+    });
   }
 
   async tapAddPhoto(): Promise<void> {
-    await this.utils.tap(this.addPhoto);
+    await test.step('Tap Add Photo', async () => {
+      await this.utils.tap(this.addPhoto);
+    });
   }
 
   async tapAddPhone(): Promise<void> {
-    await this.utils.tap(this.addPhone);
+    await test.step('Tap Add Phone', async () => {
+      await this.utils.tap(this.addPhone);
+    });
   }
 
   async tapAddEmail(): Promise<void> {
-    await this.utils.tap(this.addEmail);
+    await test.step('Tap Add Email', async () => {
+      await this.utils.tap(this.addEmail);
+    });
   }
 
   async tapAddPronouns(): Promise<void> {
-    await this.utils.tap(this.addPronouns);
+    await test.step('Tap Add Pronouns', async () => {
+      await this.utils.tap(this.addPronouns);
+    });
   }
 
   async tapAddUrl(): Promise<void> {
-    await this.utils.tap(this.addUrl);
+    await test.step('Tap Add URL', async () => {
+      await this.utils.tap(this.addUrl);
+    });
   }
 
   async expectAtAddScreen(): Promise<void> {
-    await this.utils.expectVisible(this.header);
+    await test.step('Expect at New Contact screen', async () => {
+      await this.utils.expectVisible(this.header);
+    });
   }
 }

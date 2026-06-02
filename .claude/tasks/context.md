@@ -1,52 +1,56 @@
 # Session Context
 
-Last-updated: 2026-05-17
+Last-updated: 2026-06-03
 
 ## Focus area
 
-Allwright framework foundation — facade architecture (`core/` + surface utils), iOS Contacts POM as the smoke test for the mobile surface.
+iOS Contacts POM expansion (Add → Edit → Delete flows), `test.step` made mandatory across all screens, mobilewright bug-filing prep.
 
 ## Where we are
 
-- **Facade pattern landed** in `core/`:
-  - `core/contracts/locator.contract.ts` — `LocatorLike`, `WaitState`
-  - `core/contracts/root.contract.ts` — `LocatorRoot<L>` (surface-neutral; no `getByRole`, no `AriaRole`)
-  - `core/utils/core.utils.ts` — generic `CoreUtils<L, R>` with surface-agnostic find/tap/fill/queries/wait/collection/screenshot
-- **Mobile surface** wired:
-  - `apps/mobile/utils/aria.types.ts` — mobile-scoped `AriaRole` union
-  - `apps/mobile/utils/mobile.utils.ts` — `MobileUtils extends CoreUtils<Locator, Screen>` adds `getByRole`, gestures (swipe up/down/left/right, longPress, doubleTap, swipeElement, pressHardwareButton, tapOnCoordinates), iOS `getByType`, and the full `expect*` family
-- **Strict POM** for iOS Contacts:
-  - `apps/mobile/sample/screens/contacts-list.screen.ts` — `ContactsListScreen`
-  - `apps/mobile/sample/screens/add-contact.screen.ts` — `AddContactScreen`
-  - `apps/mobile/sample/tests/example.spec.ts` chains both screens through one fixture
-- **Tooling:** `npm run test:mobile` passes (~18s). `_dump.spec.ts` retained for future screen discovery.
-- **Skills:** `screen-builder` (manual mode, token-light), `allwright-reviewer` (TS-tuned pre-PR review). Both in `.claude/skills/`.
-- **Slash commands:** `/xcode:setup`, `/mobile:test`.
+- **Four iOS Contacts screens:**
+  - `contacts-list.screen.ts` — `ContactsListScreen`
+  - `add-contact.screen.ts` — `AddContactScreen`
+  - `contact-detail.screen.ts` — `ContactDetailScreen` (new this session)
+  - `edit-contact.screen.ts` — `EditContactScreen` (new this session)
+- **Three test cases** in `mobile.spec.ts` (renamed from `example.spec.ts`):
+  - `adds a new contact` — asserts on detail screen after save (previously asserted on list, which passed for the wrong reason — see lesson #10)
+  - `edits a contact and adds a phone number`
+  - `deletes a contact` — scrolls to Delete Contact, screenshots the action sheet (both to disk AND `testInfo.attach`'d to HTML report), confirms delete
+- **`MobileUtils.swipeUntilVisible(locator, { maxSwipes?, minSwipes?, direction? })`** added — `minSwipes` forces unconditional swipes for elements with lying `isVisible` flags (iOS placeholder `(0, 0)` bounds case)
+- **`test.step` mandate** — every public screen method body wraps in `await test.step(name, async () => { ... })`. Enforced by:
+  - README §"Screen action methods MUST use `test.step`"
+  - `screen-builder` skill template updated
+  - `allwright-reviewer` skill — new `[Critical]` checklist item + Example 11
+- **Screenshot artifact pattern** — capture once, write to disk AND `testInfo.attach` to report. See `deletes a contact` test.
 
 ## Decisions made this session
 
-1. **Facade pattern** is the right call given Allwright's "unified" pitch — explicitly justified vs. duplicate-per-surface or `any`-typed alternatives.
-2. **Two interfaces in `core/contracts/`** (`LocatorLike`, `LocatorRoot`) — not one merged interface. Root finds; Locator acts. Merging would force fake methods or lose type safety.
-3. **`core/` stays surface-neutral** — no `screen`/`page` vocabulary, no `AriaRole`, no mobilewright/Playwright imports. `getByRole` carved out to surface subclasses.
-4. **POM = strict one-state-per-class.** `ContactsListScreen` and `AddContactScreen` are separate files/classes.
-5. **`screen-builder` skill is manual mode** by design. Claude on demand, not driving multi-turn walks (per `feedback_token_light_workflow.md` memory).
-6. **`viewTree()` deliberately NOT in `MobileUtils`** — it's a dev-only introspection API for locator extraction.
+1. **`test.step` everywhere on the screen action layer** — chosen over `Error.captureStackTrace` runtime hack. Reason: enterprise production-grade observability, recognized by every Playwright tool, named steps benefit the prompt-driven QA end goal. Hack was reverted, idiom adopted.
+2. **`swipeUntilVisible` lives in `MobileUtils`, not `CoreUtils`** — swipe is a mobile primitive. The post-swipe `isVisible` check happens AFTER each swipe (early-exit), not before — cleaner control flow + every swipe gets verified immediately.
+3. **Delete Contact uses StaticText, not Button** — verified from dump; iOS Contacts has no Button "Delete Contact". Locator: `this.utils.getByText('Delete Contact')`.
+4. **Action-sheet confirm tap targets `.last()`** of `getByText('Delete Contact')` — the sheet renders after the form button in the view tree. Working hypothesis; verify on next successful run.
+5. **Screenshot artifacts attach to report AND save to disk** — `testInfo.attach` is the canonical Playwright reporting API; `fs.writeFileSync` alone produces a file the report can't see (lesson #9).
 
 ## Open threads
 
-- **Web surface** not started. When it lands: `apps/web/utils/aria.types.ts` (broad WAI-ARIA union), `WebUtils extends CoreUtils<Locator, Page>`, mirror `expect*` shape.
-- **API surface** not started. Will be a **sibling abstraction** (`ApiClientLike` + `ApiUtils` that does NOT extend `CoreUtils`) — REST has no locator tree.
-- **No `tsconfig.json`** at repo root. Mobilewright currently compiles via its own config. Worth adding a project-level `tsconfig.json` with `strict: true` to enforce type discipline once `core/` grows.
-- **`core/utils/` has no unit tests yet.** The feedback memory says every util must ship with tests. Currently `CoreUtils` is generic enough that tests would need fake `LocatorLike`/`LocatorRoot` implementations. Pick Vitest or Jest when the first concrete helper lands.
-- **`package-lock.json` is gitignored.** Standard practice is to commit. Revisit before packaging.
-- **Mobilewright `--config` flag bug** (drops `platform` key) — workaround in place (`cd apps/mobile && mobilewright test`). Revisit on each mobilewright bump.
-- **`launchApp` cold-sim flake** on first run after the simulator restarts (`Error: launchApp: timed out`). Retry passes. Either bump retry count in config or pre-warm Contacts app in a fixture before this hits CI.
-- **Multiple `output.txt` artifacts** appeared/disappeared during the session. Standard path now: `apps/mobile/sample/tests/_dump_output.txt` (gitignored). Root `output.txt` also gitignored as legacy.
+- **Mobilewright bug filing** — user is a contributor; planning to file two issues:
+  1. `--config <path>` fails with `Unsupported platform: "undefined"` when cwd ≠ config's directory. Reproducer documented (works from `apps/mobile/`, fails from repo root). Draft text was prepared.
+  2. First-run agent install (~12s) consumes the test's timeout budget, causing `launchApp: timed out waiting for "com.apple.MobileAddressBook"` on cold-sim runs. Should be a separate setup-phase budget.
+  - Optional third: off-screen iOS accessibility elements reported with `isVisible: true` + `bounds: (0, 0)` (causes our `swipeUntilVisible` quirk). Lower priority.
+- **Delete Contact scroll edge case** — user nudged `minSwipes: 5 → 2` in `scrollToDeleteContact` after testing. May still flake if the form gets longer (e.g., more fields added); revisit if delete test starts failing intermittently.
+- **`mobile.spec.ts` tests are state-dependent** — add must run before edit must run before delete. Mobilewright runs same-file tests in declaration order with 1 worker, so OK locally. Will break under sharding/parallel; future fix is a `globalSetup` that seeds `Dhaksh Test`.
+- **`_dump.spec.ts` dependency on Dhaksh Test** — the `dump: edit contact form` case assumes the contact exists; fails in clean state because dumps run alphabetically before `mobile.spec.ts`. Either reorder or skip-on-missing.
+- **Web surface** still not started. When it lands: `apps/web/utils/aria.types.ts` (broad WAI-ARIA union), `WebUtils extends CoreUtils<Locator, Page>`, mirror `expect*` shape, **same `test.step` mandate** (use `@playwright/test`'s `test.step`).
+- **API surface** still not started. Sibling abstraction (`ApiClientLike` + `ApiUtils`), no `CoreUtils` extension. Decide whether `test.step` applies (probably yes for parity).
+- **No `tsconfig.json`** at repo root. Mobilewright compiles via its own config.
+- **`core/utils/` still has no unit tests** — feedback memory says every util must ship with tests. `swipeUntilVisible` is the first non-trivial helper that needs one. Pick Vitest or Jest.
+- **`package-lock.json` is gitignored.** Revisit before packaging.
 
 ## Next intended step
 
 User's call. Most likely candidates:
-1. **Add Detail / Edit / Search screens** for iOS Contacts — re-use `_dump.spec.ts` workflow.
-2. **Scaffold the web surface** — bootstrap `apps/web/` with Playwright config, `WebUtils`, a first POM.
-3. **Add `tsconfig.json`** with strict typing and verify `core/` + `apps/mobile/` compile cleanly.
-4. **Add the first unit test** in `core/utils/` (pick Vitest or Jest).
+1. **File the two mobilewright bugs** as a contributor.
+2. **Verify the delete test passes end-to-end** under current scroll settings (`minSwipes: 2, maxSwipes: 5`).
+3. **Scaffold the web surface** with `test.step` baked in from day one.
+4. **Add tsconfig.json + first unit test** for `swipeUntilVisible`.
