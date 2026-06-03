@@ -1,6 +1,5 @@
 node_modules
 .env
-package-lock.json
 
 # Test artifacts (regenerated each run)
 playwright-report/
