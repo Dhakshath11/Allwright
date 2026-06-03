@@ -75,3 +75,18 @@ test('deletes a contact', async ({ screen }, testInfo) => {
   await list.expectAtListScreen();
   await list.expectContactNotInList('Dhaksh Test');
 });
+
+// TODO: iOS system gestures — XCUITest doesn't expose Notification Center,
+// app switcher, or home indicator, so each step has to be driven by
+// coordinate-based swipes computed from the viewport size.
+// 1. Open Notification Center: swipe from top-left corner down to mid-screen.
+// 2. Minimize app (go Home) + reopen: swipe bottom-mid → top, then tap the
+//    Contacts app icon on the Home screen.
+// 3. Clear app-switcher tabs: swipe bottom-mid → center-mid with a brief
+//    hold to surface the switcher, then swipe each card center-mid → top
+//    to dismiss it.
+test.fixme('iOS system gestures: notification center, minimize/reopen, clear app switcher', async () => {
+  // Implementation pending — needs coordinate-based gesture primitives on
+  // MobileUtils (swipe-with-duration / swipe-by-coords). Confirm whether
+  // mobilewright's Screen exposes a hold/dwell on swipe before wiring this up.
+});
