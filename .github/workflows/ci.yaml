@@ -40,9 +40,9 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      actions: read
       contents: read
-      security-events: write
+      # Re-add `actions: read` and `security-events: write` when CodeQL is
+      # re-enabled (see commented block below).
 
     steps:
       - name: Checkout code
@@ -60,13 +60,17 @@ jobs:
       - name: Run npm audit
         run: npm audit --audit-level=high
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: javascript-typescript
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
-
-      - name: Analyze
-        uses: github/codeql-action/analyze@v3
+      # CodeQL — disabled until Code Scanning is enabled on the repo.
+      # To re-enable: GitHub repo → Settings → Code security → Code scanning
+      # → Set up → Advanced. Then uncomment the steps below and the
+      # `actions: read` / `security-events: write` permissions above.
+      # - name: Initialize CodeQL
+      #   uses: github/codeql-action/init@v3
+      #   with:
+      #     languages: javascript-typescript
+      #
+      # - name: Autobuild
+      #   uses: github/codeql-action/autobuild@v3
+      #
+      # - name: Analyze
+      #   uses: github/codeql-action/analyze@v3
