@@ -1,11 +1,13 @@
 import { test } from '@mobilewright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ContactsListScreen } from '../ios/screens/contacts-list.screen';
-import { AddContactScreen } from '../ios/screens/add-contact.screen';
-import { ContactDetailScreen } from '../ios/screens/contact-detail.screen';
-import { EditContactScreen } from '../ios/screens/edit-contact.screen';
+import { ContactsListScreen } from '../screens/ios/contacts-list.screen';
+import { AddContactScreen } from '../screens/ios/add-contact.screen';
+import { ContactDetailScreen } from '../screens/ios/contact-detail.screen';
+import { EditContactScreen } from '../screens/ios/edit-contact.screen';
 
+test.describe.configure({ mode: 'serial' }); 
+ 
 test('adds a new contact', async ({ screen }) => {
   const list = new ContactsListScreen(screen);
   await list.expectAtListScreen();

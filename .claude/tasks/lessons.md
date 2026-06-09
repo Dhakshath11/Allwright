@@ -131,3 +131,105 @@ await testInfo.attach('delete-confirmation', { body: buffer, contentType: 'image
 **Example:**
 - ❌ `await form.save(); await list.expectContactInList('Dhaksh Test');` — passes because text exists on detail screen
 - ✅ `await form.save(); await detail.expectAtDetailScreen({ name: 'Dhaksh Test' });` — fails if navigation differs from expectation
+
+---
+
+## 11. A TS union wrapping a third-party string-typed API must mirror the runtime's mapping exactly
+
+**Mistake:** `apps/mobile/utils/aria.types.ts` shipped with 15 ARIA-style role entries (`textbox`, `radio`, `searchbox`, `progressbar`, `menuitem`, etc.) borrowed from WAI-ARIA spec without checking mobilewright's actual runtime. mobilewright's `getByRole(role: string, ...)` resolves the role string against an internal `ROLE_TYPE_MAP` in `node_modules/@mobilewright/core/dist/query-engine.js` — a 12-entry dictionary. Only 3 of our 15 union entries (`button`, `checkbox`, `slider`) overlapped with the map. The other 12 type-checked but never resolved at runtime, falling back to a literal `node.type === 'X'` check that virtually never matched any real element. Result: `LocatorError: no matching element found after 5000ms` with no diagnostic indicating the role *name itself* was the problem.
+
+**Rule:** When you expose a narrower TypeScript union over a third-party API that accepts `string` and resolves it internally, every union member must correspond to a runtime-supported value. Find the upstream mapping (grep the package's source), mirror its keys exactly, and document the manual-mirror contract in the union's JSDoc. **Never widen the union ahead of the runtime** — every speculative entry is a silent-failure trap for the user (and an LLM picking from autocomplete in the prompt-driven QA world).
+
+**Example:**
+- ❌
+  ```ts
+  // 15 entries; 12 silently broken at runtime
+  export type AriaRole = 'button' | 'textbox' | 'searchbox' | 'radio' |
+    'select' | 'textarea' | 'listbox' | 'menu' | 'menuitem' | 'option' |
+    'progressbar' | 'scrollbar' | 'separator' | 'checkbox' | 'slider';
+  ```
+- ✅
+  ```ts
+  // Mirrors ROLE_TYPE_MAP in @mobilewright/core/dist/query-engine.js
+  export type AriaRole =
+    | 'button'    // iOS Button; Android Button / ImageButton
+    | 'textfield' // iOS TextField / SearchField; Android EditText
+    | 'text' | 'image' | 'switch' | 'checkbox' | 'slider'
+    | 'list' | 'listitem' | 'tab' | 'link' | 'header';
+  ```
+  Plus a JSDoc note that the map isn't exported from `@mobilewright/core` yet — flagged as an upstream contribution to export `type AriaRole = keyof typeof ROLE_TYPE_MAP`.
+
+---
+
+## 12. Don't ship a "best-effort" workaround for a missing framework primitive — leave the gap visible
+
+**Mistake:** mobilewright 0.0.35 has no `Locator.clear()` and no `'BACKSPACE'` HardwareButton. User asked for a `clear` helper on `MobileUtils` to wipe the "+1" prefix off Android's phone EditText before fill. I shipped `clear(locator)` that sent `'\b'.repeat(N)` via `locator.fill` — banking on soft keyboards interpreting the codepoint as Backspace. Gboard on the Pixel 10 Pro emulator (Android 13+) does NOT. The method was a silent no-op: tests appeared to clear, then `fill` appended, producing `"+1 735-324-21657353242165"` style garbage on the second run of the edit test.
+
+**Rule:** When a framework lacks a primitive and the available substitutes are unreliable across devices/locales/keyboards, **do not ship the wrapper**. Document the gap inline (a code comment where the method *would* live), file the upstream issue, and require tests to arrange pre-state instead. A method named `clear` that doesn't reliably clear is worse than no method — it creates false confidence and an LLM picking from autocomplete in the prompt-driven QA world will reach for it. This is the inverse of lesson #8: when the *framework idiom is missing*, don't substitute a runtime hack — leave a load-bearing comment that points at the upstream gap.
+
+**Tells that I'm building a fake-clear:**
+- "soft keyboards usually interpret `\b` as Backspace"
+- "this is best-effort; if it doesn't work the user can adjust"
+- "let me add a small buffer in case of cursor quirks"
+
+If those phrases appear, stop. Either the primitive exists (use it) or it doesn't (document the gap, do not wrap).
+
+**Example:**
+- ❌ `async clear(locator) { await locator.fill('\b'.repeat(N + 3)); }` — silent no-op on Gboard; callers see a clear method and assume the field is empty
+- ✅ A comment block at the *position* `clear` would occupy that spells out: no native primitive, no working workaround, tests must arrange pre-state, link to the upstream issue. Plus a note on `EditContactScreen.fillMobile` documenting the pre-state assumption.
+
+---
+
+## 13. When the config moves to a `projects[]` matrix, every top-level read of `platform` / `bundleId` becomes a silent `undefined`
+
+**Mistake:** `apps/mobile/global-setup.ts` shipped with `if (config.platform !== 'android') return;` — a clean short-circuit when the config had a top-level `platform` key. We later refactored `mobilewright.config.ts` into a multi-project matrix where `platform` and `bundleId` live under `projects[].use`. The setup's top-level read became `undefined`, the check `undefined !== 'android'` evaluated to `true` on every run, and the function returned before any `adb pm grant` fired. Android permission popups silently came back without any test failing — the setup was just doing nothing.
+
+**Rule:** Any code that imports the mobilewright config and reads platform-scoped fields (`platform`, `bundleId`, `deviceName`, `installApps`) must walk `config.projects ?? []` and pull from `use.*`. Top-level reads are still valid in **single-project** configs but become a load-bearing footgun the moment a second project is added. When refactoring to a matrix, grep for every direct top-level access first — most won't be caught by TS (the fields are all optional in `MobilewrightConfig`, so no type error fires).
+
+**Tells that the bug is present:**
+- `config.platform` / `config.bundleId` referenced anywhere outside the projects array — and the file used to work but a recent matrix refactor "didn't change anything".
+- Setup runs report success but the behavior they were supposed to produce (permissions granted, env vars set, etc.) doesn't happen.
+
+**Example:**
+- ❌ `if (config.platform !== 'android') return;` after the projects refactor — always returns true.
+- ✅
+  ```ts
+  const androidPackages = (config.projects ?? [])
+    .map((p) => p.use)
+    .filter((u): u is { platform: 'android'; bundleId: string } =>
+      u?.platform === 'android' && typeof u.bundleId === 'string')
+    .map((u) => u.bundleId);
+  ```
+  Plus tolerate the "no devices/emulators found" adb error so an iOS-only run doesn't fail when no Android emulator is up.
+
+---
+
+## 14. `projects[]` without `testMatch` runs every spec on every project — and the test count multiplies silently
+
+**Mistake:** Added two projects (`ios`, `android`) to `mobilewright.config.ts` without per-project `testMatch`. Running `npm run test:mobile -- mobile_` reported **16 tests in 2 workers** — 8 specs (5 iOS + 3 Android) × 2 projects. The Android project was trying to drive the iOS specs against the Pixel emulator and vice versa. The number "16" only stood out because the user happened to be counting.
+
+**Rule:** Every project in a matrix needs a `testMatch` (or `testIgnore`) that pins it to the specs it actually owns — adopt a filename convention that makes the pattern trivial. The Allwright convention: `<feature>_<platform>.spec.ts` → `testMatch: /_<platform>\.spec\.ts$/`. Add this at the *same time* you add the project, never as a follow-up — the bug between "add project" and "add testMatch" is silent (tests pass on the wrong platform if they happen to be cross-compatible) and the wasted-time cost scales linearly with suite size.
+
+**Tells that the bug is present:**
+- Test count is a multiple of the project count — `npm run test:mobile -- <pattern>` reports 2× / 3× / Nx what you expected.
+- Specs "work" on platforms they have no business running on (e.g. iOS spec passes on Android because both have a `getByText('Save')` button by coincidence).
+- A spec that drives a platform-specific bundleId errors mid-test on the wrong emulator.
+
+**Example:**
+- ❌
+  ```ts
+  projects: [
+    { name: 'ios',     use: { platform: 'ios',     bundleId: '…' } },
+    { name: 'android', use: { platform: 'android', bundleId: '…' } },
+  ]
+  // every spec runs under both projects
+  ```
+- ✅
+  ```ts
+  projects: [
+    { name: 'ios',     testMatch: /_ios\.spec\.ts$/,     use: { … } },
+    { name: 'android', testMatch: /_android\.spec\.ts$/, use: { … } },
+  ]
+  ```
+  The filename convention IS the contract. Cross-platform specs need their own dedicated project (or get an explicit testMatch glob that includes them in every relevant project).
+

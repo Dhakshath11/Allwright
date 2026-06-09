@@ -27,7 +27,7 @@ Running 1 test using 1 worker
   1 passed (~18s)
 ```
 
-The smoke test launches the iOS **Contacts** app, taps **Add**, fills a sample contact (`Dhaksh Test @ LambdaTest`), saves, and asserts the new entry shows up in the list.
+The smoke test launches the iOS **Contacts** app, taps **Add**, fills a sample contact (`Dhaksh Test @ LambdaTest`), saves, and asserts the new entry on the detail screen.
 
 ## Run commands
 
@@ -37,6 +37,34 @@ The smoke test launches the iOS **Contacts** app, taps **Add**, fills a sample c
 | `npm run test:web`    | *(stub — exits non-zero until web surface is scaffolded)* |
 | `npm run test:api`    | *(stub — exits non-zero until API surface is scaffolded)* |
 | `npm test`            | Alias for `test:mobile` (only working surface today) |
+| `npm run lint`        | ESLint over the repo (type-aware via `typescript-eslint/recommended-type-checked`) |
+| `npm run lint:fix`    | ESLint with `--fix` |
+
+## CI
+
+`.github/workflows/ci.yaml` runs on push to `main`, on every PR, and via `workflow_dispatch`:
+
+- **`lint`** job — `npm run lint`
+- **`security-scan`** job — `npm audit --audit-level=high` (CodeQL is wired but commented out until Code Scanning is enabled in repo Settings → Code security → Code scanning → Advanced)
+
+Both jobs use the `package-lock.json` for reproducible `npm ci` installs.
+
+## Platform target (mobile)
+
+`apps/mobile/mobilewright.config.ts` defines a **two-project matrix** — iOS and Android run as separate mobilewright projects, each constrained to its own specs via `testMatch`:
+
+```ts
+projects: [
+  { name: 'ios',     testMatch: /_ios\.spec\.ts$/,     use: { platform: 'ios',     bundleId: 'com.apple.MobileAddressBook', deviceName: /iPhone 17 Pro/ } },
+  { name: 'android', testMatch: /_android\.spec\.ts$/, use: { platform: 'android', bundleId: 'com.google.android.contacts', deviceName: /Pixel 10 Pro/ } },
+],
+```
+
+- **Filename convention is the contract.** Specs must end with `_ios.spec.ts` or `_android.spec.ts` — that's how each project picks them up. Without `testMatch`, every project would run every spec (spec count × project count).
+- **iOS** runs against `com.apple.MobileAddressBook` on an iPhone 17 Pro simulator.
+- **Android** runs against `com.google.android.contacts` on a Pixel 10 Pro Google API emulator (Android 13+). On launch, `apps/mobile/global-setup.ts` walks `config.projects` and runs `adb pm grant` for the dangerous runtime permissions (POST_NOTIFICATIONS, READ_CONTACTS, …) for each Android project's `bundleId`, so OS popups never appear. The setup tolerates `"no devices/emulators found"` errors when running iOS-only.
+- **Serial state chains** (e.g. add → edit → delete) live behind `test.describe.configure({ mode: 'serial' })` at the top of each `mobile_<platform>.spec.ts`. `fullyParallel: true` stays at the config level for cross-file parallelism.
+- **Parallel-execution caveat:** with `workers: 2`, both emulators must be up if you want both projects running simultaneously. Single-emulator runs should pass `--project=<name>` to scope.
 
 ## Architecture in one paragraph
 
@@ -54,16 +82,18 @@ apps/<surface>/                # per-surface util classes, configs, sample tests
 .claude/                       # Claude Code config (skills, commands, tasks)
 ```
 
-Mobile surface today: `apps/mobile/sample/screens/contacts-list.screen.ts` + `add-contact.screen.ts` driven by `example.spec.ts`.
+Mobile surface today:
+- iOS — 4 screens in `apps/mobile/sample/screens/ios/` driven by `mobile_ios.spec.ts` (add / edit / delete contact + two fixme placeholders for system gestures and Add-Photo screen recording).
+- Android — 4 screens in `apps/mobile/sample/screens/android/` driven by `mobile_android.spec.ts` (add / edit / delete contact). Notable Android-vs-iOS divergences captured in the POMs: Delete lives on the *detail* screen (not edit form); no `tapAddPhone` step (phone EditText is always rendered with `"+1"` prefix); header strings are `"Create contact"` / `"Edit contact"`. `MobileUtils` has no `clear()` — mobilewright lacks the primitive — so edit tests assume a clean pre-state (serial mode handles this).
 
 ## Adding a new screen object (POM)
 
 Strict POM: one visible screen state = one class. To extract locators from a live app:
 
-1. Add a `test()` block to `apps/mobile/sample/tests/_dump.spec.ts` that navigates to your target state.
-2. `npm run test:mobile -- _dump` — writes the view tree to `_dump_output.txt`.
+1. Add a `test()` block to the platform's dump spec (`_dump_ios.spec.ts` or `_dump_android.spec.ts`) that navigates to your target state.
+2. `npm run test:mobile -- _dump_<platform>` — writes the view tree to `_dump_output.txt`.
 3. Open `_dump_output.txt`, follow the recipe in `.claude/skills/screen-builder/SKILL.md`.
-4. Reference shape: any file in `apps/mobile/sample/screens/`.
+4. Reference shape: any file in `apps/mobile/sample/screens/ios/`.
 
 ## Conventions
 
