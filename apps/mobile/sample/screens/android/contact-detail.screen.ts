@@ -62,10 +62,8 @@ export class ContactDetailScreen {
     });
   }
 
-  // The "Delete" TextView sits at the bottom of the detail screen's
-  // ScrollView (under "Contact settings" → "Share contact" → "Add to
-  // home screen"). On smaller viewports it's below the fold — mirror
-  // the iOS scroll-to-reveal pattern via `swipeUntilVisible`.
+  // Delete sits at the bottom of the detail ScrollView (under Share /
+  // Add-to-home-screen). On smaller viewports it's below the fold.
   async scrollToDelete(): Promise<void> {
     await test.step('Scroll to Delete', async () => {
       await this.utils.swipeUntilVisible(this.deleteEntry, {
@@ -81,34 +79,24 @@ export class ContactDetailScreen {
     });
   }
 
-  // Android AlertDialogs animate in (~300–500ms). A screenshot or
-  // `confirmDelete` taken immediately after `tapDelete` can fire before
-  // the dialog has rendered.
-  //
-  // Discriminator: "Cancel" is a strong dialog-only signal — the detail
-  // screen itself has no Cancel element. Waiting for it to become visible
-  // bounds the wait by the actual rendering event rather than a magic
-  // sleep. Capture a `dump: delete confirmation dialog` if "Cancel" turns
-  // out to be the wrong word in your locale or app version.
+  // Android AlertDialogs animate in ~300–500ms. "Cancel" is dialog-only
+  // (the detail screen itself has no Cancel) so it's a reliable signal.
   async waitForConfirmDialog(): Promise<void> {
     await test.step('Wait for delete confirmation dialog', async () => {
       await this.utils.waitFor(this.utils.getByText('Cancel'), 'visible');
     });
   }
 
-  // After `tapDelete`, Google Contacts shows an AlertDialog with a
-  // "Delete" button. The dialog renders AFTER the entry-point TextView
-  // in the view tree, so target the LAST match for "Delete".
-  //
-  // Best-guess locator pending a dialog dump — add a
-  // `dump: delete confirmation dialog` test in `_dump_android.spec.ts`
-  // if this misfires (don't extrapolate further — see lesson #7).
+  // The dialog renders after the entry-point TextView in the view tree,
+  // so target the LAST match. Best-guess pending a dialog snapshot.
   async confirmDelete(): Promise<void> {
     await test.step('Confirm Delete', async () => {
       await this.utils.tap(this.utils.getByText('Delete').last());
     });
   }
 
+  // Discriminates by name + Edit button — name alone could match
+  // the list / search-results screens (lesson #10).
   async expectAtDetailScreen({ name }: { name: string }): Promise<void> {
     await test.step(`Expect at "${name}" detail screen`, async () => {
       await this.utils.expectVisible(this.title);
@@ -124,7 +112,7 @@ export class ContactDetailScreen {
     });
   }
 
-  // Post-edit detail screen wasn't dumped (we only have the pre-edit
+  // TODO Post-edit detail screen wasn't dumped (we only have the pre-edit
   // version with no phone). Android Contacts formats phone numbers
   // locale-dependently (US default formats 10 digits as "(NNN) NNN-NNNN").
   // Match the dialed digits via a regex stripped of separators, which

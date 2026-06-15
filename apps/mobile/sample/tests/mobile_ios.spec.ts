@@ -6,8 +6,8 @@ import { AddContactScreen } from '../screens/ios/add-contact.screen';
 import { ContactDetailScreen } from '../screens/ios/contact-detail.screen';
 import { EditContactScreen } from '../screens/ios/edit-contact.screen';
 
-test.describe.configure({ mode: 'serial' }); 
- 
+test.describe.configure({ mode: 'serial' });
+
 test('adds a new contact', async ({ screen }) => {
   const list = new ContactsListScreen(screen);
   await list.expectAtListScreen();

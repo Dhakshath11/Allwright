@@ -13,7 +13,7 @@ export default defineConfig([
       '**/playwright-report/**',
       '**/test-results/**',
       'apps/mobile/sample/screenshots/**',
-      'apps/mobile/sample/tests/_dump_output.txt',
+      'apps/mobile/sample/resources/snapshots/**',
     ],
   },
   {

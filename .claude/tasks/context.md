@@ -18,7 +18,9 @@ Android Contacts suite end-to-end (create / edit / delete), mobilewright multi-p
 - **Spec** `apps/mobile/sample/tests/mobile_android.spec.ts` — three working tests (add → edit → delete) wrapped in `test.describe.configure({ mode: 'serial' })` so the state chain holds even under `fullyParallel: true`.
 - **Delete flow lives on the detail screen** (Android divergence from iOS: iOS hides Delete at the bottom of the *edit* form). Same `swipeUntilVisible` pattern, different screen.
 - **No `tapAddPhone` step on Android** — the phone EditText is rendered immediately with `"+1"` as country-code prefix. `fillMobile` just fills.
-- **`_dump_android.spec.ts`** has four entries (list / add / contact-detail / edit form). The detail and edit dumps assume "Dhaksh Test" is present — re-running them on a populated state is the locator-stacking gotcha called out in their comments.
+- **`_snapshots_android.spec.ts`** has four entries (list / add / contact-detail / edit form). The detail and edit dumps assume "Dhaksh Test" is present — re-running them on a populated state is the locator-stacking gotcha.
+- **Snapshot specs physically separated** (refactored 2026-06-15). `_snapshots_*.spec.ts` files live in `apps/mobile/sample/snapshots/` (sibling of `tests/`); the new `apps/mobile/snapshots.config.ts` points `testDir` at that folder while `mobilewright.config.ts` points at `sample/tests/`. No spec is discoverable by both — clean filesystem-level division, no testIgnore gymnastics. Each test writes one JSON file at `apps/mobile/sample/resources/snapshots/<platform>_<state>.json` — **committed to git**, not gitignored: the canonical snapshot a POM was built against is the input a future self-healing runner would diff a fresh capture against. Run via `npm run test:mobile:snapshots -- --project=<platform>`. This separation is also the substrate for future AI-assisted self-healing — a runner can diff a fresh snapshot against the one a POM was built from to detect locator drift.
+- **TS comment sweep** (2026-06-15). Aggressive prune of restate-the-obvious / section-divider / class-rationale comments across `core/`, `apps/mobile/utils/`, both screen sets, both test specs, and both snapshot specs. Kept only load-bearing WHY (iOS bounds quirk, dialog animation discriminator, locale-tolerant phone regex, mobilewright clear() gap, runtime-mirror discipline on AriaRole).
 
 ### `clear()` attempted and removed
 
@@ -69,7 +71,6 @@ Android Contacts suite end-to-end (create / edit / delete), mobilewright multi-p
 - **`autoGrantPermissions: true` on `LaunchOptions`** — carried over from last session; would let us delete `global-setup.ts` entirely.
 - **`ROLE_TYPE_MAP` export from `@mobilewright/core`** — carried over; would let `apps/mobile/utils/aria.types.ts` collapse to `export type { AriaRole } from '@mobilewright/core'`.
 - **iOS off-screen `(0,0)` bounds + `isVisible:true` quirk** — carried over, lower priority.
-- **`--config <path>` cwd bug** — carried over.
 - **CodeQL** — still commented out in CI workflow, pending repo Settings → Code security → Code scanning being enabled (Advanced mode).
 - **Web surface** still not started.
 - **API surface** still not started.

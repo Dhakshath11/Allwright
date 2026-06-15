@@ -4,20 +4,21 @@
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test:mobile": "cd apps/mobile && mobilewright test",
+    "test:mobile": "mobilewright test --config apps/mobile/mobilewright.config.ts",
+    "test:mobile:snapshots": "mobilewright test --config apps/mobile/snapshots.config.ts",
     "test:web": "echo \"web suite not yet scaffolded\" && exit 1",
     "test:api": "echo \"api suite not yet scaffolded\" && exit 1",
     "test": "npm run test:mobile"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
-    "@mobilewright/test": "^0.0.35",
+    "@mobilewright/test": "^0.0.44",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/node": "latest",
     "eslint": "^9.39.4",
     "globals": "^17.6.0",
     "jiti": "^2.7.0",
-    "mobilewright": "^0.0.35",
+    "mobilewright": "^0.0.44",
     "typescript-eslint": "^8.60.1"
   }
 }

@@ -1,6 +1,7 @@
 import { defineConfig } from 'mobilewright';
 
 export default defineConfig({
+  testDir: './sample/tests',
   reporter: 'html',
   timeout: 90_000,
   globalSetup: './global-setup.ts',
@@ -9,10 +10,9 @@ export default defineConfig({
   projects: [
     {
       name: 'ios',
-      // Only specs whose filename ends with `_ios.spec.ts` run on this
-      // project (covers `mobile_ios.spec.ts` and `_dump_ios.spec.ts`).
-      // Without this filter, every project runs every spec, doubling
-      // the test count and trying to drive Android tests on iOS.
+      // Per-platform filename convention: `mobile_<platform>.spec.ts`.
+      // Without testMatch every project would run every spec — the
+      // android project would try to drive iOS specs and vice versa.
       testMatch: /_ios\.spec\.ts$/,
       use: {
         platform: 'ios',

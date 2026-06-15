@@ -6,7 +6,7 @@ import { AddContactScreen } from '../screens/android/add-contact.screen';
 import { ContactDetailScreen } from '../screens/android/contact-detail.screen';
 import { EditContactScreen } from '../screens/android/edit-contact.screen';
 
-test.describe.configure({ mode: 'serial' }); 
+test.describe.configure({ mode: 'serial' });
 
 test('adds a new contact', async ({ screen }) => {
   const list = new ContactsListScreen(screen);

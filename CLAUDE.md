@@ -87,17 +87,24 @@ Allwright/
 │       └── core.utils.ts              # CoreUtils<L, R> — generic facade (no getByRole)
 ├── apps/
 │   └── mobile/
-│       ├── mobilewright.config.ts
+│       ├── mobilewright.config.ts             # regression suite — testDir: ./sample/tests
+│       ├── snapshots.config.ts                # locator-discovery — testDir: ./sample/snapshots
+│       ├── global-setup.ts                    # walks projects[] and adb-grants Android perms
 │       ├── utils/
-│       │   ├── aria.types.ts          # MobileAriaRole union
-│       │   └── mobile.utils.ts        # MobileUtils extends CoreUtils — getByRole, gestures, expect*
+│       │   ├── aria.types.ts                  # MobileAriaRole union (mirrors ROLE_TYPE_MAP)
+│       │   └── mobile.utils.ts                # MobileUtils extends CoreUtils
 │       └── sample/
+│           ├── resources/
+│           │   └── snapshots/                 # one <platform>_<state>.json per dumped screen (gitignored)
 │           ├── screens/
-│           │   ├── contacts-list.screen.ts  # iOS Contacts list view POM
-│           │   └── add-contact.screen.ts    # iOS Contacts add-form POM
-│           └── tests/
-│               ├── example.spec.ts          # iOS Contacts smoke test (uses both screens)
-│               └── _dump.spec.ts            # locator-discovery dump (kept for future screens)
+│           │   ├── ios/                       # iOS Contacts POMs (4 screens)
+│           │   └── android/                   # Android Contacts POMs (4 screens)
+│           ├── tests/                         # REGRESSION SUITE — discovered by mobilewright.config.ts
+│           │   ├── mobile_ios.spec.ts         # iOS suite (serial, add/edit/delete + 2 fixme)
+│           │   └── mobile_android.spec.ts     # Android suite (serial, add/edit/delete)
+│           └── snapshots/                     # LOCATOR-DISCOVERY TOOLING — discovered by snapshots.config.ts
+│               ├── _snapshots_ios.spec.ts     # iOS view-tree captures → resources/snapshots/
+│               └── _snapshots_android.spec.ts # Android view-tree captures → resources/snapshots/
 ├── .claude/
 │   ├── commands/                      # project slash commands
 │   ├── skills/                        # project skills (allwright-reviewer)
@@ -159,12 +166,13 @@ To build a new screen, invoke the `screen-builder` skill (manual mode — token-
 
 | Command | What it does |
 |---|---|
-| `npm run test:mobile` | Runs mobilewright on `apps/mobile/`. Implementation: `cd apps/mobile && mobilewright test` (auto-discovers config from cwd). |
+| `npm run test:mobile` | Regression suite (mobilewright.config.ts, testDir: `sample/tests`). |
+| `npm run test:mobile:snapshots` | Locator-discovery captures (snapshots.config.ts, testDir: `sample/snapshots`). Run with `-- --project=<ios\|android>` to scope. |
 | `npm run test:web` | Stub — exits with error until web surface is scaffolded. |
 | `npm run test:api` | Stub — exits with error until API surface is scaffolded. |
 | `npm test` | Alias for `test:mobile` (only working surface today). |
 
-**Why `cd apps/mobile`** instead of `mobilewright test --config apps/mobile/mobilewright.config.ts`: the `--config` flag in mobilewright 0.0.35 loads the file but loses the `platform` key (causes `Unsupported platform: "undefined"` at runtime). Working around with cwd auto-discovery until upstream is fixed. Revisit on every mobilewright bump.
+The `--config <path>` flag works from any cwd as of mobilewright 0.0.44 (earlier versions had a cwd-dependent loader bug that produced `Unsupported platform: "undefined"`). Relative paths inside the config — `globalSetup: './global-setup.ts'`, `testDir`, etc. — resolve against the config file's directory.
 
 ### Misc Notes
 

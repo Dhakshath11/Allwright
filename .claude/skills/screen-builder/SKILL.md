@@ -9,17 +9,19 @@ The user does the locator extraction themselves. This file is the **recipe + tem
 
 ## Step 1 — Capture the view tree (user)
 
-Ensure `apps/mobile/sample/tests/_dump.spec.ts` has a `test()` block that navigates to the target screen state and calls `dump(screen, 'LABEL')`. Add or edit blocks as needed.
+Ensure the platform's snapshots spec — `apps/mobile/sample/snapshots/_snapshots_<platform>.spec.ts` — has a `test()` block that navigates to the target screen state and calls `dump(screen, '<platform>_<state>.json')`. Add or edit blocks as needed.
 
 ```bash
-npm run test:mobile -- _dump
+npm run test:mobile:snapshots -- --project=<platform>
 ```
 
-Writes `apps/mobile/sample/tests/_dump_output.txt`. One section per dumped state.
+Writes one JSON file per dumped state to `apps/mobile/sample/resources/snapshots/`. Naming convention: `<platform>_<state>.json` (e.g. `android_contacts_list_view.json`, `ios_add_contact_form.json`). Each file is the full view-tree JSON for that single screen — no headers, no labels, no concatenation.
+
+> Snapshot specs live in `sample/snapshots/`, separate from the regression suite in `sample/tests/`. The two configs (`mobilewright.config.ts` and `snapshots.config.ts`) point at different `testDir`s so the suites never overlap.
 
 ## Step 2 — Extract locators manually (user)
 
-Open `_dump_output.txt`. Scan for elements worth wrapping.
+Open the snapshot file for the screen you're building (e.g. `apps/mobile/sample/resources/snapshots/android_add_contact_form.json`). Scan for elements worth wrapping.
 
 **Keep** — any of:
 - `accessibilityIdentifier` set (the gold standard — becomes `getByTestId`)
@@ -108,7 +110,7 @@ export class FeatureScreen {
 | Final review of the completed file | The full screen class file | Run `allwright-reviewer` over it — catches POM hygiene, weak assertions, prompt-friendliness |
 
 **Avoid** (high token cost, low value):
-- Asking Claude to read the full `_dump_output.txt`.
+- Asking Claude to read a full snapshot file (they're 1000+ lines of JSON).
 - Asking Claude to enumerate or walk every locator.
 - Interactive per-element approval — that's exactly the flow this manual mode replaces.
 
@@ -116,4 +118,4 @@ export class FeatureScreen {
 
 1. Update or write the spec that consumes it.
 2. Run `npm run test:mobile` to verify it compiles and runs.
-3. Delete `_dump_output.txt`. Delete `_dump.spec.ts` if no more screens are queued.
+3. Delete the snapshot file you consumed from `apps/mobile/sample/resources/snapshots/`. Delete the `test()` block from `apps/mobile/sample/snapshots/_snapshots_<platform>.spec.ts` if no more screens are queued for that platform; delete the whole file if everything is built.

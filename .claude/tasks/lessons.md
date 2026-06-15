@@ -48,7 +48,7 @@ Mistakes the user has corrected, with the preventive rule and a concrete example
 
 **Example:**
 - ❌ `MobileUtils.viewTree(): Promise<ViewNode[]> { return this.root.viewTree(); }` — pure passthrough, never used in production tests
-- ✅ `_dump.spec.ts` calls `await screen.viewTree()` directly with `// dev-only API, deliberately kept out of MobileUtils`
+- ✅ `apps/mobile/sample/snapshots/_snapshots_<platform>.spec.ts` calls `await screen.viewTree()` directly with `// dev-only API, deliberately kept out of MobileUtils`
 
 ---
 
@@ -84,7 +84,7 @@ Mistakes the user has corrected, with the preventive rule and a concrete example
 
 **Example:**
 - ❌ Switch to `getByRole('button', 'Delete Contact')` because "iOS usually has both Button and StaticText"
-- ✅ `grep -A 3 '"label": "Delete Contact"' _dump_output.txt` first — confirm type before changing
+- ✅ `grep -A 3 '"label": "Delete Contact"' apps/mobile/sample/resources/snapshots/ios_edit_contact_form.json` first — confirm type before changing
 
 ---
 

@@ -33,7 +33,8 @@ The smoke test launches the iOS **Contacts** app, taps **Add**, fills a sample c
 
 | Command | What it does |
 |---|---|
-| `npm run test:mobile` | Mobilewright suite under `apps/mobile/` |
+| `npm run test:mobile` | Regression suite under `apps/mobile/sample/tests/` |
+| `npm run test:mobile:snapshots` | Locator-discovery captures under `apps/mobile/sample/snapshots/`. Pass `-- --project=<ios\|android>` to scope. |
 | `npm run test:web`    | *(stub — exits non-zero until web surface is scaffolded)* |
 | `npm run test:api`    | *(stub — exits non-zero until API surface is scaffolded)* |
 | `npm test`            | Alias for `test:mobile` (only working surface today) |
@@ -90,9 +91,9 @@ Mobile surface today:
 
 Strict POM: one visible screen state = one class. To extract locators from a live app:
 
-1. Add a `test()` block to the platform's dump spec (`_dump_ios.spec.ts` or `_dump_android.spec.ts`) that navigates to your target state.
-2. `npm run test:mobile -- _dump_<platform>` — writes the view tree to `_dump_output.txt`.
-3. Open `_dump_output.txt`, follow the recipe in `.claude/skills/screen-builder/SKILL.md`.
+1. Add a `test()` block to the platform's snapshot spec in `apps/mobile/sample/snapshots/` (`_snapshots_ios.spec.ts` or `_snapshots_android.spec.ts`) that navigates to your target state.
+2. `npm run test:mobile:snapshots -- --project=<platform>` — writes one JSON file per test to `apps/mobile/sample/resources/snapshots/<platform>_<state>.json`. Snapshot specs live in `sample/snapshots/` and are discovered only by `snapshots.config.ts`; the regression suite (`mobilewright.config.ts`) points `testDir` at `sample/tests/`, so the two never overlap.
+3. Open the relevant snapshot file (e.g. `android_contacts_list_view.json`), follow the recipe in `.claude/skills/screen-builder/SKILL.md`.
 4. Reference shape: any file in `apps/mobile/sample/screens/ios/`.
 
 ## Conventions
