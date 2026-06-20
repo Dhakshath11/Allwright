@@ -1,10 +1,12 @@
-import { test } from '@mobilewright/test';
+import { test, expect } from '@mobilewright/test';
+import { sleep } from '@mobilewright/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ContactsListScreen } from '../screens/ios/contacts-list.screen';
 import { AddContactScreen } from '../screens/ios/add-contact.screen';
 import { ContactDetailScreen } from '../screens/ios/contact-detail.screen';
 import { EditContactScreen } from '../screens/ios/edit-contact.screen';
+import { MobileUtils } from '../../utils/mobile.utils';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -78,19 +80,69 @@ test('deletes a contact', async ({ screen }, testInfo) => {
   await list.expectContactNotInList('Dhaksh Test');
 });
 
-// TODO: iOS system gestures — XCUITest doesn't expose Notification Center,
-// app switcher, or home indicator, so each step has to be driven by
-// coordinate-based swipes computed from the viewport size.
-// 1. Open Notification Center: swipe from top-left corner down to mid-screen.
-// 2. Minimize app (go Home) + reopen: swipe bottom-mid → top, then tap the
-//    Contacts app icon on the Home screen.
-// 3. Clear app-switcher tabs: swipe bottom-mid → center-mid with a brief
-//    hold to surface the switcher, then swipe each card center-mid → top
-//    to dismiss it.
-test.fixme('iOS system gestures: notification center, minimize/reopen, clear app switcher', async () => {
-  // Implementation pending — needs coordinate-based gesture primitives on
-  // MobileUtils (swipe-with-duration / swipe-by-coords). Confirm whether
-  // mobilewright's Screen exposes a hold/dwell on swipe before wiring this up.
+test('long-presses a contact, returns Home, then relaunches Contacts', async ({ device, screen }, testInfo) => {
+  const utils = new MobileUtils(screen);
+
+  // Long-press the default 'David Taylor' sample contact card.
+  await utils.longPress(utils.getByText('David Taylor'));
+
+  // Return to Springboard via the hardware HOME button.
+  await utils.pressHardwareButton('HOME');
+
+  // pressHardwareButton is fire-and-forget — iOS takes ~200-500ms to
+  // surface Springboard. Wait long enough to cover slower simulators.
+  await sleep(500);
+
+  const fg = await device.getForegroundApp();
+  await testInfo.attach('foreground after HOME', {
+    body: JSON.stringify(fg, null, 2),
+    contentType: 'application/json',
+  });
+  expect(fg.bundleId).toBe('com.apple.springboard');
+
+  // Re-foreground Contacts so the device is left in a clean state.
+  await device.launchApp('com.apple.MobileAddressBook');
+  const resurfaced = await device.getForegroundApp();
+  await testInfo.attach('foreground after relaunch', {
+    body: JSON.stringify(resurfaced, null, 2),
+    contentType: 'application/json',
+  });
+  expect(resurfaced.bundleId).toBe('com.apple.MobileAddressBook');
+});
+
+test('opens Notification Center from Contacts and dismisses it', async ({ device, screen }, testInfo) => {
+  const utils = new MobileUtils(screen);
+  const screenSize = await device.screenSize();
+
+  await utils.openNotifications(screenSize);
+  await sleep(600);
+
+  const ncScreenshot = await screen.screenshot();
+  await testInfo.attach('notification-center-open', {
+    body: ncScreenshot,
+    contentType: 'image/png',
+  });
+
+  await utils.closeNotifications(screenSize);
+  await sleep(400);
+
+  const fg = await device.getForegroundApp();
+  await testInfo.attach('foreground after dismiss', {
+    body: JSON.stringify(fg, null, 2),
+    contentType: 'application/json',
+  });
+  expect(fg.bundleId).toBe('com.apple.MobileAddressBook');
+});
+
+// TODO: iOS system gestures — XCUITest doesn't expose the app switcher or
+// home indicator directly; each step must be driven by coordinate-based swipes.
+// 1. Minimize app (go Home) + reopen: swipe bottom-mid → top, then tap the
+//    Contacts icon on the Home screen.
+// 2. Clear app-switcher cards: swipe bottom-mid → center with a brief hold to
+//    surface the switcher, then swipe each card upward to dismiss it.
+test.fixme('iOS system gestures: minimize/reopen, clear app switcher', async () => {
+  // Implementation pending — confirm whether mobilewright's Screen exposes a
+  // hold/dwell on swipe before wiring the app-switcher steps.
 });
 
 // TODO: Screen-record the Add Photo → Avatar selection flow.

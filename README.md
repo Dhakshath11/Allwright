@@ -69,7 +69,19 @@ projects: [
 
 ## Architecture in one paragraph
 
-`core/` holds surface-agnostic contracts (`LocatorRoot`, `LocatorLike`) and a generic `CoreUtils<L, R>` facade — **no mobilewright/playwright imports**. Each surface lives under `apps/<surface>/` and provides a concrete subclass (`MobileUtils extends CoreUtils<Locator, Screen>` today; `WebUtils extends CoreUtils<Locator, Page>` later) that adds surface-only primitives (gestures, hover, etc.) and the `expect*` assertion helpers. Test authors only ever import the surface util — the `core/` layer stays invisible. Full architectural rationale lives in [`CLAUDE.md`](./CLAUDE.md).
+`core/` holds surface-agnostic contracts (`LocatorRoot`, `LocatorLike`) and a generic `CoreUtils<L, R>` facade — **no mobilewright/playwright imports**. Each surface lives under `apps/<surface>/` and provides a concrete subclass (`MobileUtils extends CoreUtils<Locator, Screen>` today; `WebUtils extends CoreUtils<Locator, Page>` later) that adds surface-only primitives and the `expect*` assertion helpers. Test authors only ever import the surface util — the `core/` layer stays invisible. Full architectural rationale lives in [`CLAUDE.md`](./CLAUDE.md).
+
+`MobileUtils` swipe API (all screen-level swipes use `device.io.swipe` which has no `duration` support — omitted by design):
+
+| Method | When to use |
+|---|---|
+| `swipeUp/Down/Left/Right(distance?)` | Simple directional swipe from screen center |
+| `swipeFromPoint(direction, { startX, startY, distance? })` | Start position matters — notification shade, Control Center, edge back-swipe |
+| `openNotifications(screenSize)` | Pull notification shade: 90% of width from top, 90% of height distance |
+| `closeNotifications(screenSize)` | Dismiss notification shade: reverse of open |
+| `swipeElement(locator, direction)` | Swipe anchored to a specific element's center |
+| `swipeUntilVisible(locator, opts)` | Loop-swipe until element visible; `minSwipes` forces unconditional swipes for elements with lying iOS bounds |
+| `gesture(pointers)` | Raw waypoint-based gesture — exact coords, multi-finger, dwell (note: has a known bug; avoid until resolved) |
 
 ## Repository layout
 
@@ -84,8 +96,9 @@ apps/<surface>/                # per-surface util classes, configs, sample tests
 ```
 
 Mobile surface today:
-- iOS — 4 screens in `apps/mobile/sample/screens/ios/` driven by `mobile_ios.spec.ts` (add / edit / delete contact + two fixme placeholders for system gestures and Add-Photo screen recording).
-- Android — 4 screens in `apps/mobile/sample/screens/android/` driven by `mobile_android.spec.ts` (add / edit / delete contact). Notable Android-vs-iOS divergences captured in the POMs: Delete lives on the *detail* screen (not edit form); no `tapAddPhone` step (phone EditText is always rendered with `"+1"` prefix); header strings are `"Create contact"` / `"Edit contact"`. `MobileUtils` has no `clear()` — mobilewright lacks the primitive — so edit tests assume a clean pre-state (serial mode handles this).
+- iOS — 4 screens in `apps/mobile/sample/screens/ios/` driven by `mobile_ios.spec.ts` (add / edit / delete contact + long-press HOME + notification center open/dismiss + two fixme placeholders for app-switcher gestures and Add-Photo screen recording).
+- Android — 4 screens in `apps/mobile/sample/screens/android/` driven by `mobile_android.spec.ts` (add / edit / delete contact + long-press HOME + notification shade open/dismiss). Notable Android-vs-iOS divergences captured in the POMs: Delete lives on the *detail* screen (not edit form); no `tapAddPhone` step (phone EditText is always rendered with `"+1"` prefix); header strings are `"Create contact"` / `"Edit contact"`. `MobileUtils` has no `clear()` — mobilewright lacks the primitive — so edit tests assume a clean pre-state (serial mode handles this).
+- **Device API smoke tests** — `mobile_device_ios.spec.ts` and `mobile_device_android.spec.ts` exercise every public method on the `device` fixture (`screenSize`, `getOrientation`/`setOrientation`, `launchApp`, `getForegroundApp`, `terminateApp`, `listApps`, `openUrl`/`goto`, `startRecording`/`stopRecording`). These are framework-level checks with no POM dependency. The iOS and Android variants are not interchangeable — they use platform-specific bundle IDs and account for platform behavioural differences (e.g. Springboard vs. home launcher after `terminateApp`).
 
 ## Adding a new screen object (POM)
 

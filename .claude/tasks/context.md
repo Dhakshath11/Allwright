@@ -1,87 +1,58 @@
 # Session Context
 
-Last-updated: 2026-06-10
+Last-updated: 2026-06-21
 
 ## Focus area
 
-Android Contacts suite end-to-end (create / edit / delete), mobilewright multi-project matrix (`projects[]` with per-platform `testMatch`), `global-setup` rewrite to read the matrix, stylistic ESLint rules, and a `clear()` workaround that was tried and **discarded** as broken.
+`MobileUtils` swipe API expansion, iOS/Android notification tests, device API smoke test parity, and swipe coordinate model clarification.
 
-## Where we are
+## What we did this session
 
-### Mobile surface — Android (suite complete this session)
+### MobileUtils swipe API (`apps/mobile/utils/mobile.utils.ts`)
 
-- **POMs** in `apps/mobile/sample/screens/android/`:
-  - `contacts-list.screen.ts` — search bar testId, FAB testId, "All contacts" title, "No contacts yet" empty state.
-  - `add-contact.screen.ts` — header `"Create contact"`, `getByLabel('First name'/'Last name')`, `getByText('Company')` (TextView label that mobilewright walks to the sibling EditText on fill), `getByText('Save')`, `getByLabel('Cancel')`.
-  - `contact-detail.screen.ts` — `nav_back_icon`, `menu_star`, `menu_insert_or_edit` (Edit), `menu_settings`, `large_title`, `organization_name`, `getByText('Delete')` at the bottom of the scroll view. `expectAtDetailScreen` discriminates by name + Edit button (lesson #10). `expectMobileNumber({ dialedNumber })` uses a digit-spaced regex tolerant of any phone-formatting locale. `waitForConfirmDialog()` waits on `getByText('Cancel')` as the dialog-only discriminator.
-  - `edit-contact.screen.ts` — header `"Edit contact"`, save/cancel, first/last/company fills, `mobileField = getByText('+1')` (initial country-code prefix state).
-- **Spec** `apps/mobile/sample/tests/mobile_android.spec.ts` — three working tests (add → edit → delete) wrapped in `test.describe.configure({ mode: 'serial' })` so the state chain holds even under `fullyParallel: true`.
-- **Delete flow lives on the detail screen** (Android divergence from iOS: iOS hides Delete at the bottom of the *edit* form). Same `swipeUntilVisible` pattern, different screen.
-- **No `tapAddPhone` step on Android** — the phone EditText is rendered immediately with `"+1"` as country-code prefix. `fillMobile` just fills.
-- **`_snapshots_android.spec.ts`** has four entries (list / add / contact-detail / edit form). The detail and edit dumps assume "Dhaksh Test" is present — re-running them on a populated state is the locator-stacking gotcha.
-- **Snapshot specs physically separated** (refactored 2026-06-15). `_snapshots_*.spec.ts` files live in `apps/mobile/sample/snapshots/` (sibling of `tests/`); the new `apps/mobile/snapshots.config.ts` points `testDir` at that folder while `mobilewright.config.ts` points at `sample/tests/`. No spec is discoverable by both — clean filesystem-level division, no testIgnore gymnastics. Each test writes one JSON file at `apps/mobile/sample/resources/snapshots/<platform>_<state>.json` — **committed to git**, not gitignored: the canonical snapshot a POM was built against is the input a future self-healing runner would diff a fresh capture against. Run via `npm run test:mobile:snapshots -- --project=<platform>`. This separation is also the substrate for future AI-assisted self-healing — a runner can diff a fresh snapshot against the one a POM was built from to detect locator drift.
-- **TS comment sweep** (2026-06-15). Aggressive prune of restate-the-obvious / section-divider / class-rationale comments across `core/`, `apps/mobile/utils/`, both screen sets, both test specs, and both snapshot specs. Kept only load-bearing WHY (iOS bounds quirk, dialog animation discriminator, locale-tolerant phone regex, mobilewright clear() gap, runtime-mirror discipline on AriaRole).
+- **`duration` removed** from `swipeUp/Down/Left/Right` and `swipeFromPoint`. `device.io.swipe` silently ignores it (Go server only reads `x1, y1, x2, y2`). If speed control is needed, `gesture()` is the correct path (uses `device.io.gesture` where `pointerMove.duration` is honoured).
+- **`swipeFromPoint(direction, { startX, startY, distance? })`** added — exposes the `startX`/`startY` options on `screen.swipe` that the existing directional helpers didn't pass through. Use when the swipe origin matters (notification shade, Control Center, edge back-swipe).
+- **`gesture(pointers: GesturePointers)`** added — thin pass-through to `screen.gesture`. `GesturePointers` is inferred from `Parameters<Screen['gesture']>[0]['pointers']`. Mobilewright's gesture type is simple waypoints (`{ x, y, time? }[][]`), not W3C pointer events. **Currently has a known bug — avoid using in tests until resolved.**
+- **`openNotifications(screenSize)`** and **`closeNotifications(screenSize)`** added. Both accept `{ width, height }` from `device.screenSize()` (Screen doesn't expose size — only Device does). Compute `startX = round(width * 0.9)`, `distance = round(height * 0.9)`. For close: `startY = round(height * 0.9)`, `distance = startY` so `endY = 0`.
 
-### `clear()` attempted and removed
+### Coordinate model (confirmed this session)
 
-- Added `MobileUtils.clear(locator)` that sent `'\b'.repeat(N + 3)` via `locator.fill`, betting on soft keyboards mapping `\b` to Backspace.
-- **Gboard on Pixel 10 Pro (Android 13+) does NOT honor `\b`.** Silent no-op. Filling on top of a populated phone produced `"+1 735-324-21657353242165"` style garbage on re-runs.
-- Method **removed**. Replaced with a `NOTE:` comment block in `MobileUtils` that spells out the gap and documents the upstream contribution needed (`Locator.clear()` + `'BACKSPACE'` HardwareButton).
-- `EditContactScreen.fillMobile` now assumes a clean pre-state (fresh contact, "+1" prefix only). For re-runs, either run the full serial chain or delete the contact manually.
-- Lesson #12 in `lessons.md` captures the broader rule: don't ship a "best-effort" workaround for a missing primitive — leave the gap visible.
+- `device.screenSize()` returns **logical points** (test device: `{ width: 402, height: 874, scale: 3 }`).
+- MobileCLI uses **physical pixels** (`540,0,540,1500` on the same device = 1206×2622 physical).
+- `screen.swipe` and `swipeFromPoint` take logical point coordinates — divide CLI pixel values by `scale` to convert.
+- iOS swipe origin matters: left-half top → Notification Center, right-half top → Control Center. Current `openNotifications` uses 90% of width (right side) — may open Control Center on Dynamic Island devices; confirm on device.
 
-### `mobilewright.config.ts` — multi-project matrix
+### iOS spec (`apps/mobile/sample/tests/mobile_ios.spec.ts`)
 
-- Replaced the top-level `platform`/`bundleId` config with a `projects[]` matrix:
-  ```ts
-  projects: [
-    { name: 'ios',     testMatch: /_ios\.spec\.ts$/,     use: { platform: 'ios',     bundleId: 'com.apple.MobileAddressBook', deviceName: /iPhone 17 Pro/ } },
-    { name: 'android', testMatch: /_android\.spec\.ts$/, use: { platform: 'android', bundleId: 'com.google.android.contacts', deviceName: /Pixel 10 Pro/ } },
-  ]
-  ```
-- `workers: 2`, `fullyParallel: true` at the top level. Within a spec file, `test.describe.configure({ mode: 'serial' })` keeps add → edit → delete ordered.
-- **`testMatch` is load-bearing.** Without it, every project runs every discovered spec → spec count × project count (the user saw 8 specs × 2 projects = 16). The filename convention `<feature>_<platform>.spec.ts` makes the regex trivial.
+- Added test: `'long-presses a contact, returns Home, then relaunches Contacts'` — presses HOME, checks Springboard, relaunches Contacts. Contact: `'David Taylor'` (default iOS sample contact).
+- Added test: `'opens Notification Center from Contacts and dismisses it'` — uses `openNotifications` / `closeNotifications`, attaches screenshot + foreground check.
+- `test.fixme` updated: removed "Notification Center" from the title/TODO (now covered above); remaining fixmes: app-switcher / minimize-reopen, Add Photo screen recording.
 
-### `global-setup.ts` — projects-aware rewrite
+### Android spec (`apps/mobile/sample/tests/mobile_android.spec.ts`)
 
-- Old check `if (config.platform !== 'android') return;` was a no-op bug after the projects refactor — `config.platform` is now `undefined` (lives under `projects[].use.platform`). Permissions were never being granted.
-- Rewrite walks `config.projects ?? []`, narrows to entries with `use.platform === 'android' && bundleId`, and runs `adb -e shell pm grant` for each package × each dangerous permission.
-- Tolerated adb error substrings expanded to three: `"has not requested permission"` (manifest doesn't declare it), `"no devices/emulators found"`, `"device not found"` (iOS-only run with no Android emulator up). Any other failure throws.
+- Added test: `'long-presses a contact, returns Home, then relaunches Contacts'` — contact: `'Michael Bay'` (Android sample contact on this emulator). After HOME, asserts `bundleId !== 'com.google.android.contacts'` (launcher package varies by image, don't pin it).
+- Added test: `'opens notification shade from Contacts and dismisses it'` — same `openNotifications`/`closeNotifications` API; attachment label: `notification-shade-open`.
 
-### ESLint stylistic rules
+### Device API smoke tests
 
-- Added `@stylistic/eslint-plugin` as a devDependency and a new `allwright/rules` config block in `eslint.config.mts`:
-  - **Correctness:** `@typescript-eslint/no-unused-vars` (`{ args: 'none', caughtErrors: 'none' }`), `@typescript-eslint/no-floating-promises`, `no-var`, `eqeqeq` (with `null: 'ignore'`).
-  - **Style:** `@stylistic/quotes: single`, `@stylistic/semi: always`, `@stylistic/object-curly-spacing: always`, `@stylistic/indent: 2`, `@stylistic/comma-dangle: always-multiline`.
-- `lint:fix` cleaned up the config's own double-quotes and one missing space across the repo.
+- `mobile_device_ios.spec.ts` (untracked → now being used as-is) — exercises all `device` methods with iOS bundle IDs. **iOS-specific**: `com.apple.*` constants, `width < 600` guard on `screenSize`, Springboard check after `terminateApp`, Safari for `openUrl`.
+- `mobile_device_android.spec.ts` (new file) — Android mirror. Key differences: no Springboard (assert `!== SETTINGS` after `terminateApp`), no `width < 600` guard, Chrome for `openUrl`, `.apk` in the `installApp` fixme. `sleep(600)` added before `getForegroundApp` after `openUrl`/`goto` (Android intent resolution is async).
 
-## Decisions made this session
+## Open threads (carried forward)
 
-1. **Per-project `testMatch` over `--project` flag at every invocation** — keeps the default `npm run test:mobile` doing the right thing (iOS specs to iOS, Android to Android). Filename convention is the public contract.
-2. **File-level `test.describe.configure({ mode: 'serial' })`** for the stateful suites — `fullyParallel: true` stays at the config level for cross-file parallelism; serial mode is scoped to the file where the add → edit → delete state chain lives.
-3. **Remove `clear()` rather than ship the broken backspace workaround** — inverse of lesson #8: when the framework idiom is missing, document the gap; don't substitute a runtime hack that creates false confidence (lesson #12).
-4. **`waitForConfirmDialog()` over hard sleep** — wait on a dialog-only locator (`getByText('Cancel')` — the detail screen has no Cancel) so the wait is bounded by the actual rendering event, not a magic 500ms.
-5. **`expectAtDetailScreen` checks name AND Edit button visible** — lesson #10: a single text match can pass on the wrong screen; the Edit button is the screen-discriminator.
-6. **`expectMobileNumber({ dialedNumber })` uses a digit-spaced regex** — `/7\D*3\D*5\D*3.../` tolerates any locale formatting Android applies. Avoids hard-coding "+1 735-324-2165" or "(735) 324-2165".
-7. **`@stylistic/*` instead of relying on prettier** — single tool (ESLint) for both correctness and style; no second config to keep in sync. `lint:fix` covers most fixes automatically.
-
-## Open threads
-
-- **`Locator.clear()` upstream PR** — needed for any field-edit test that runs on a populated input. Add `'BACKSPACE'` / `'DEL'` to `HardwareButton` enum at the same time.
-- **`autoGrantPermissions: true` on `LaunchOptions`** — carried over from last session; would let us delete `global-setup.ts` entirely.
-- **`ROLE_TYPE_MAP` export from `@mobilewright/core`** — carried over; would let `apps/mobile/utils/aria.types.ts` collapse to `export type { AriaRole } from '@mobilewright/core'`.
-- **iOS off-screen `(0,0)` bounds + `isVisible:true` quirk** — carried over, lower priority.
-- **CodeQL** — still commented out in CI workflow, pending repo Settings → Code security → Code scanning being enabled (Advanced mode).
-- **Web surface** still not started.
-- **API surface** still not started.
-- **`core/utils/` still has no unit tests** — `swipeUntilVisible` is the canonical first one.
-- **iOS suite under projects matrix** — the iOS spec ran fine pre-matrix; should be re-verified end-to-end under the new config now that `testMatch: /_ios\.spec\.ts$/` is in effect.
-- **Delete-confirmation dialog dump** — not captured yet. `confirmDelete()` uses `getByText('Delete').last()` as a best-guess; tighten once dumped.
+- **`gesture()` bug** — known, user flagged. Avoid until resolved upstream.
+- **`openNotifications` X coordinate** — 90% of width = right side of screen → may open Control Center on Dynamic Island iPhones. Needs device verification to confirm which panel opens.
+- **`Locator.clear()` upstream PR** — still missing. Edit tests assume clean pre-state via serial mode.
+- **`autoGrantPermissions: true` on `LaunchOptions`** — would delete `global-setup.ts`.
+- **`ROLE_TYPE_MAP` export from `@mobilewright/core`** — would collapse `aria.types.ts` to a re-export.
+- **`core/utils/` unit tests** — `swipeUntilVisible` is the canonical first candidate.
+- **Web surface** — not started.
+- **API surface** — not started.
+- **CodeQL** — commented out in CI, pending repo Settings → Code scanning → Advanced.
 
 ## Next intended step
 
-User's call. Likely candidates:
-1. Re-verify the iOS suite under the projects matrix (`npm run test:mobile -- mobile_ios`).
-2. File the new mobilewright issues (`Locator.clear()`, `'BACKSPACE'` HardwareButton, `autoGrantPermissions`, `ROLE_TYPE_MAP` export).
-3. Stage and commit the Android suite + projects-matrix changes.
-4. Start the first `core/utils/` unit test (`swipeUntilVisible`).
+User's call. Likely:
+1. Run the notification test on a live simulator and confirm which panel opens (NC vs CC).
+2. Fix or track the `gesture()` bug.
+3. First `core/utils/` unit test (`swipeUntilVisible`).

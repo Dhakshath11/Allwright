@@ -6,6 +6,7 @@ import type { AriaRole } from './aria.types';
 // TODO — remove these inferred shims when mobilewright exports HardwareButton/SwipeDirection types.
 type HardwareButton = Parameters<Screen['pressButton']>[0];
 type SwipeDirection = 'up' | 'down' | 'left' | 'right';
+type GesturePointers = Parameters<Screen['gesture']>[0]['pointers'];
 
 /**
  * Mobile-surface utility — inherits the common CoreUtils API and adds
@@ -47,20 +48,49 @@ export class MobileUtils extends CoreUtils<Locator, Screen> {
 
   // ─── Mobile-only screen actions ─────────────────────────────────────
 
-  async swipeUp(distance?: number, duration?: number): Promise<void> {
-    await this.root.swipe('up', { distance, duration });
+  // duration is intentionally absent — device.io.swipe ignores it (server only reads x1,y1,x2,y2).
+  // Use gesture() if you need speed control.
+  async swipeUp(distance?: number): Promise<void> {
+    await this.root.swipe('up', { distance });
   }
 
-  async swipeDown(distance?: number, duration?: number): Promise<void> {
-    await this.root.swipe('down', { distance, duration });
+  async swipeDown(distance?: number): Promise<void> {
+    await this.root.swipe('down', { distance });
   }
 
-  async swipeLeft(distance?: number, duration?: number): Promise<void> {
-    await this.root.swipe('left', { distance, duration });
+  async swipeLeft(distance?: number): Promise<void> {
+    await this.root.swipe('left', { distance });
   }
 
-  async swipeRight(distance?: number, duration?: number): Promise<void> {
-    await this.root.swipe('right', { distance, duration });
+  async swipeRight(distance?: number): Promise<void> {
+    await this.root.swipe('right', { distance });
+  }
+
+  /**
+   * Like swipeUp/Down/Left/Right but lets you control where the swipe starts.
+   * Use when the start position matters — notification shade (startY: 0, center X),
+   * Control Center (startY: 0, right X), edge back-swipe (startX: 0, center Y).
+   * The driver computes the end point from direction + distance; you don't set x2/y2.
+   * For exact end coordinates or speed control use `gesture` instead.
+   */
+  async swipeFromPoint(
+    direction: SwipeDirection,
+    options: { startX: number; startY: number; distance?: number },
+  ): Promise<void> {
+    await this.root.swipe(direction, options);
+  }
+
+  async openNotifications(screenSize: { width: number; height: number }): Promise<void> {
+    const startX = Math.round(screenSize.width * 0.9);
+    const distance = Math.round(screenSize.height * 0.9);
+    await this.swipeFromPoint('down', { startX, startY: 0, distance });
+  }
+
+  async closeNotifications(screenSize: { width: number; height: number }): Promise<void> {
+    const startX = Math.round(screenSize.width * 0.9);
+    const startY = Math.round(screenSize.height * 0.9);
+    // distance = startY so endY = startY - startY = 0
+    await this.swipeFromPoint('up', { startX, startY, distance: startY });
   }
 
   async tapOnCoordinates(x: number, y: number): Promise<void> {
@@ -104,6 +134,21 @@ export class MobileUtils extends CoreUtils<Locator, Screen> {
     throw new Error(
       `Element not visible after ${maxSwipes} '${direction}' swipes`,
     );
+  }
+
+  /**
+   * Raw coordinate-based gesture — the escape hatch when swipe APIs aren't enough.
+   * Each sub-array is one finger: a path of { x, y, time? } waypoints where `time`
+   * is the ms offset from gesture start. First point = touch down, last = lift off.
+   * Use over `swipeFromPoint` when you need: exact end coordinates (e.g. matching a
+   * CLI swipe command), a mid-swipe pause/dwell (app switcher), or a second finger
+   * (pinch/zoom — pass a second sub-array).
+   *
+   * Notification swipe equivalent of CLI `io swipe 540,0,540,1500`:
+   *   gesture([[{ x: 540, y: 0 }, { x: 540, y: 1500, time: 500 }]])
+   */
+  async gesture(pointers: GesturePointers): Promise<void> {
+    await this.root.gesture({ pointers });
   }
 
   // ─── Assertions (use mobilewright's expect under the hood) ──────────

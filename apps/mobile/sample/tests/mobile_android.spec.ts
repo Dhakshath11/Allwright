@@ -1,10 +1,12 @@
-import { test } from '@mobilewright/test';
+import { test, expect } from '@mobilewright/test';
+import { sleep } from '@mobilewright/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ContactsListScreen } from '../screens/android/contacts-list.screen';
 import { AddContactScreen } from '../screens/android/add-contact.screen';
 import { ContactDetailScreen } from '../screens/android/contact-detail.screen';
 import { EditContactScreen } from '../screens/android/edit-contact.screen';
+import { MobileUtils } from '../../utils/mobile.utils';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -79,4 +81,54 @@ test('deletes a contact', async ({ screen }, testInfo) => {
 
   await list.expectAtListScreen();
   await list.expectContactNotInList('Dhaksh Test');
+});
+
+test('long-presses a contact, returns Home, then relaunches Contacts', async ({ device, screen }, testInfo) => {
+  const utils = new MobileUtils(screen);
+
+  await utils.longPress(utils.getByText('Micheal Bay'));
+
+  // HOME button sends Android to the launcher — fire-and-forget, allow time to settle.
+  await utils.pressHardwareButton('HOME');
+  await sleep(500);
+
+  const fg = await device.getForegroundApp();
+  await testInfo.attach('foreground after HOME', {
+    body: JSON.stringify(fg, null, 2),
+    contentType: 'application/json',
+  });
+  // Android launcher package varies by image — assert Contacts is gone, not a specific launcher ID.
+  expect(fg.bundleId).not.toBe('com.google.android.contacts');
+
+  await device.launchApp('com.google.android.contacts');
+  const resurfaced = await device.getForegroundApp();
+  await testInfo.attach('foreground after relaunch', {
+    body: JSON.stringify(resurfaced, null, 2),
+    contentType: 'application/json',
+  });
+  expect(resurfaced.bundleId).toBe('com.google.android.contacts');
+});
+
+test('opens notification shade from Contacts and dismisses it', async ({ device, screen }, testInfo) => {
+  const utils = new MobileUtils(screen);
+  const screenSize = await device.screenSize();
+
+  await utils.openNotifications(screenSize);
+  await sleep(600);
+
+  const ncScreenshot = await screen.screenshot();
+  await testInfo.attach('notification-shade-open', {
+    body: ncScreenshot,
+    contentType: 'image/png',
+  });
+
+  await utils.closeNotifications(screenSize);
+  await sleep(400);
+
+  const fg = await device.getForegroundApp();
+  await testInfo.attach('foreground after dismiss', {
+    body: JSON.stringify(fg, null, 2),
+    contentType: 'application/json',
+  });
+  expect(fg.bundleId).toBe('com.google.android.contacts');
 });

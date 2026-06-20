@@ -204,6 +204,23 @@ If those phrases appear, stop. Either the primitive exists (use it) or it doesn'
 
 ---
 
+## 15. `device.io.swipe` ignores `duration` — it is silently dropped at the RPC level
+
+**Mistake:** `MobileUtils.swipeUp/Down/Left/Right` and `swipeFromPoint` accepted a `duration` param and passed it to `screen.swipe()`, which forwarded it to `device.io.swipe`. The mobilecli Go server's swipe struct only reads `deviceId, x1, y1, x2, y2` — any extra JSON field is discarded by `json.Unmarshal`. Android hardcodes 1000ms in `adb shell input swipe`; iOS uses WDA's internal default. Neither exposes duration at the RPC level. The param was documented, type-checked, passed through every layer — and did nothing.
+
+**Rule:** `device.io.swipe` has no `duration`. Do not expose it on swipe wrapper methods — a param that type-checks but silently no-ops is a silent-failure trap. If speed control is needed, route through `gesture()` (`device.io.gesture` where each `pointerMove` action has its own `duration` field that IS honoured). Only `longPress` exposes duration at the RPC level — that one is fine.
+
+**Tells that the param is dead:**
+- Any `duration` on `swipeUp`, `swipeDown`, `swipeLeft`, `swipeRight`, or `swipeFromPoint`.
+- A comment like "transit time in ms" on a `SwipeOptions.duration` field — the option exists in the protocol type but the underlying RPC ignores it.
+
+**Example:**
+- ❌ `async swipeUp(distance?: number, duration?: number) { await this.root.swipe('up', { distance, duration }); }` — duration silently no-ops
+- ✅ `async swipeUp(distance?: number) { await this.root.swipe('up', { distance }); }` — honest signature
+- ✅ Use `gesture([[{ x, y: start }, { x, y: end, time: durationMs }]])` when speed matters
+
+---
+
 ## 14. `projects[]` without `testMatch` runs every spec on every project — and the test count multiplies silently
 
 **Mistake:** Added two projects (`ios`, `android`) to `mobilewright.config.ts` without per-project `testMatch`. Running `npm run test:mobile -- mobile_` reported **16 tests in 2 workers** — 8 specs (5 iOS + 3 Android) × 2 projects. The Android project was trying to drive the iOS specs against the Pixel emulator and vice versa. The number "16" only stood out because the user happened to be counting.
