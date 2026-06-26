@@ -1,4 +1,4 @@
-import { test } from '@mobilewright/test';
+import { test, expect } from '@mobilewright/test';
 import type { Screen, Locator } from '@mobilewright/core';
 import { MobileUtils } from '../../../utils/mobile.utils';
 
@@ -54,19 +54,19 @@ export class ContactsListScreen {
 
   async expectAtListScreen(): Promise<void> {
     await test.step('Expect at Contacts list screen', async () => {
-      await this.utils.expectVisible(this.title);
+      await expect(this.title).toBeVisible();
     });
   }
 
   async expectContactInList(name: string): Promise<void> {
     await test.step(`Expect contact "${name}" in list`, async () => {
-      await this.utils.expectVisible(this.utils.getByText(name));
+      await expect(this.utils.getByText(name)).toBeVisible();
     });
   }
 
   async expectContactNotInList(name: string): Promise<void> {
     await test.step(`Expect contact "${name}" not in list`, async () => {
-      await this.utils.expectHidden(this.utils.getByText(name));
+      await expect(this.utils.getByText(name)).toBeHidden();
     });
   }
 }

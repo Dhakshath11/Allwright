@@ -108,6 +108,7 @@ Strict POM: one visible screen state = one class. To extract locators from a liv
 2. `npm run test:mobile:snapshots -- --project=<platform>` — writes one JSON file per test to `apps/mobile/sample/resources/snapshots/<platform>_<state>.json`. Snapshot specs live in `sample/snapshots/` and are discovered only by `snapshots.config.ts`; the regression suite (`mobilewright.config.ts`) points `testDir` at `sample/tests/`, so the two never overlap.
 3. Open the relevant snapshot file (e.g. `android_contacts_list_view.json`), follow the recipe in `.claude/skills/screen-builder/SKILL.md`.
 4. Reference shape: any file in `apps/mobile/sample/screens/ios/`.
+5. **Never delete the snapshot JSON.** Snapshot files in `resources/snapshots/` are a permanent record. When the UI changes, recapture (overwrite) the file — the timestamp change is logged in `snapshot_history.json`. This history feeds the Auto-Healer strategy (see [Agentic QA Approach](#agentic-qa-approach)).
 
 ## Conventions
 
@@ -182,3 +183,34 @@ async expectAtListScreen(): Promise<void> {
 - `/mobile:test` — run the mobile suite.
 - **`screen-builder`** skill — recipe for building POM classes from a captured view tree.
 - **`allwright-reviewer`** skill — pre-PR review tuned to Allwright's conventions.
+- **`mobilewright-cli`** skill — agentic end-to-end workflow: preflight → capture → inspect → build POM → write test → run.
+
+---
+
+## Agentic QA Approach
+
+The sections below describe the agentic layer being built on top of Allwright's test surfaces. Each is a stub — content will be filled in as the pieces are implemented.
+
+### Skills
+
+> *TODO: document each Claude Code skill, its trigger phrases, what it does, and when to use it vs. the manual equivalent.*
+
+Current skills in `.claude/skills/`:
+
+| Skill | Mode | Purpose |
+|---|---|---|
+| `mobilewright-cli` | Agentic | Full workflow — preflight, capture, build POM, write and run tests |
+| `screen-builder` | Manual (token-light) | Build a single POM from an already-captured snapshot |
+| `allwright-reviewer` | Agentic | Pre-PR review against Allwright conventions |
+
+### Workflow
+
+> *TODO: diagram the end-to-end agentic QA workflow — from a plain-English test intent to a running spec. Cover how skills chain together (mobilewright-cli → screen-builder → allwright-reviewer) and where human checkpoints sit.*
+
+### MCP
+
+> *TODO: document MCP server integrations planned for Allwright — e.g. JIRA for bug sync, Slack for run notifications, LambdaTest for cloud grid access. Include server name, what tools it exposes, and how to configure it in `.claude/settings.json`.*
+
+### Agent
+
+> *TODO: describe the autonomous QA agent design — how it takes a natural-language test description, uses the skills above, and produces a committed, reviewed spec. Cover the agent loop, handoff points, and how it ties into the prompt-driven QA end goal.*

@@ -1,5 +1,4 @@
-import { expect } from '@mobilewright/test';
-import type { Screen, Locator } from '@mobilewright/core';
+import type { Screen, Locator, GetByWebViewOptions } from '@mobilewright/core';
 import { CoreUtils } from '../../../core/utils/core.utils';
 import type { AriaRole } from './aria.types';
 
@@ -7,6 +6,8 @@ import type { AriaRole } from './aria.types';
 type HardwareButton = Parameters<Screen['pressButton']>[0];
 type SwipeDirection = 'up' | 'down' | 'left' | 'right';
 type GesturePointers = Parameters<Screen['gesture']>[0]['pointers'];
+// WebViewLocator is not re-exported from @mobilewright/core index — infer from Screen.
+type WebViewLocator = ReturnType<Screen['getByWebView']>;
 
 /**
  * Mobile-surface utility — inherits the common CoreUtils API and adds
@@ -151,45 +152,13 @@ export class MobileUtils extends CoreUtils<Locator, Screen> {
     await this.root.gesture({ pointers });
   }
 
-  // ─── Assertions (use mobilewright's expect under the hood) ──────────
+  // ─── WebView access ─────────────────────────────────────────────────
+  // Returns a WebViewLocator — call .page() on the result to get a
+  // Playwright Page for driving embedded web content. Use opts.testId to
+  // target a specific web view when more than one is present on screen.
 
-  async expectVisible(locator: Locator): Promise<void> {
-    await expect(locator).toBeVisible();
+  getByWebView(opts?: GetByWebViewOptions): WebViewLocator {
+    return this.root.getByWebView(opts);
   }
 
-  async expectHidden(locator: Locator): Promise<void> {
-    await expect(locator).toBeHidden();
-  }
-
-  async expectEnabled(locator: Locator): Promise<void> {
-    await expect(locator).toBeEnabled();
-  }
-
-  async expectDisabled(locator: Locator): Promise<void> {
-    await expect(locator).toBeDisabled();
-  }
-
-  async expectFocused(locator: Locator): Promise<void> {
-    await expect(locator).toBeFocused();
-  }
-
-  async expectChecked(locator: Locator): Promise<void> {
-    await expect(locator).toBeChecked();
-  }
-
-  async expectSelected(locator: Locator): Promise<void> {
-    await expect(locator).toBeSelected();
-  }
-
-  async expectText(locator: Locator, text: string): Promise<void> {
-    await expect(locator).toHaveText(text);
-  }
-
-  async expectContainText(locator: Locator, text: string): Promise<void> {
-    await expect(locator).toContainText(text);
-  }
-
-  async expectValue(locator: Locator, value: string): Promise<void> {
-    await expect(locator).toHaveValue(value);
-  }
 }

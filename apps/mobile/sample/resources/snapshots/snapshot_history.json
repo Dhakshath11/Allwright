@@ -1,0 +1,14 @@
+{
+  "_comment": "Snapshot change log for the Auto-Healer strategy. Each entry records every time a snapshot file was captured or recaptured. Never edit manually — updated by the snapshot capture workflow.",
+  "_schema": {
+    "<platform>_<state>.json": [
+      {
+        "capturedAt": "ISO-8601 timestamp",
+        "platform": "ios | android",
+        "screen": "human-readable screen state label",
+        "triggeredBy": "initial-capture | ui-change | recapture"
+      }
+    ]
+  },
+  "snapshots": {}
+}

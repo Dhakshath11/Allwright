@@ -1,4 +1,4 @@
-import { test } from '@mobilewright/test';
+import { test, expect } from '@mobilewright/test';
 import type { Screen, Locator } from '@mobilewright/core';
 import { MobileUtils } from '../../../utils/mobile.utils';
 
@@ -31,15 +31,15 @@ export class ContactDetailScreen {
 
   async expectAtDetailScreen({ name }: { name: string }): Promise<void> {
     await test.step(`Expect at "${name}" detail screen`, async () => {
-      await this.utils.expectVisible(this.utils.getByText(name));
-      await this.utils.expectVisible(this.editButton);
+      await expect(this.utils.getByText(name)).toBeVisible();
+      await expect(this.editButton).toBeVisible();
     });
   }
 
   async expectMobileNumber({ displayedNumber }: { displayedNumber: string }): Promise<void> {
     await test.step(`Expect mobile number "${displayedNumber}"`, async () => {
-      await this.utils.expectVisible(this.mobileLabel);
-      await this.utils.expectVisible(this.utils.getByText(displayedNumber));
+      await expect(this.mobileLabel).toBeVisible();
+      await expect(this.utils.getByText(displayedNumber)).toBeVisible();
     });
   }
 }

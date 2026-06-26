@@ -95,7 +95,8 @@ Allwright/
 │       │   └── mobile.utils.ts                # MobileUtils extends CoreUtils
 │       └── sample/
 │           ├── resources/
-│           │   └── snapshots/                 # one <platform>_<state>.json per dumped screen (gitignored)
+│           │   ├── snapshots/                 # one <platform>_<state>.json per dumped screen (permanent — never delete)
+│           │   └── snapshot_history.json      # change log per snapshot file — feeds Auto-Healer strategy
 │           ├── screens/
 │           │   ├── ios/                       # iOS Contacts POMs (4 screens)
 │           │   └── android/                   # Android Contacts POMs (4 screens)

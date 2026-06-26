@@ -1,4 +1,4 @@
-import { test } from '@mobilewright/test';
+import { test, expect } from '@mobilewright/test';
 import type { Screen, Locator } from '@mobilewright/core';
 import { MobileUtils } from '../../../utils/mobile.utils';
 
@@ -99,16 +99,16 @@ export class ContactDetailScreen {
   // the list / search-results screens (lesson #10).
   async expectAtDetailScreen({ name }: { name: string }): Promise<void> {
     await test.step(`Expect at "${name}" detail screen`, async () => {
-      await this.utils.expectVisible(this.title);
-      await this.utils.expectText(this.title, name);
-      await this.utils.expectVisible(this.editButton);
+      await expect(this.title).toBeVisible();
+      await expect(this.title).toHaveText(name);
+      await expect(this.editButton).toBeVisible();
     });
   }
 
   async expectOrganization({ company }: { company: string }): Promise<void> {
     await test.step(`Expect organization "${company}"`, async () => {
-      await this.utils.expectVisible(this.organization);
-      await this.utils.expectText(this.organization, company);
+      await expect(this.organization).toBeVisible();
+      await expect(this.organization).toHaveText(company);
     });
   }
 
@@ -122,7 +122,7 @@ export class ContactDetailScreen {
     await test.step(`Expect mobile number contains "${dialedNumber}"`, async () => {
       const digitsOnly = dialedNumber.replace(/\D/g, '');
       const pattern = new RegExp(digitsOnly.split('').join('\\D*'));
-      await this.utils.expectVisible(this.utils.getByText(pattern));
+      await expect(this.utils.getByText(pattern)).toBeVisible();
     });
   }
 }

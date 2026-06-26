@@ -1,4 +1,4 @@
-import { test } from '@mobilewright/test';
+import { test, expect } from '@mobilewright/test';
 import type { Screen, Locator } from '@mobilewright/core';
 import { MobileUtils } from '../../../utils/mobile.utils';
 
@@ -47,7 +47,7 @@ export class EditContactScreen {
 
   async expectAtEditScreen(): Promise<void> {
     await test.step('Expect at Edit Contact screen', async () => {
-      await this.utils.expectVisible(this.doneButton);
+      await expect(this.doneButton).toBeVisible();
     });
   }
 

@@ -162,13 +162,28 @@ test.describe('iOS Device API', () => {
     expect(fs.statSync(out).size).toBeGreaterThan(0);
   });
 
-  // installApp requires a `.zip` of the .app bundle for iOS simulator (or
-  // a `.ipa` for real device). No fixture binary is committed — unfixme
-  // and point IPA_PATH at a real build to run.
-  test.fixme('installApp accepts iOS-sim .zip (or real-device .ipa)', async ({ device }) => {
-    const IPA_PATH = '/tmp/MyApp.zip';
-    await device.installApp(IPA_PATH);
-    await device.uninstallApp('com.example.myapp');
+  test('installApp installs playground, verifies foreground, then uninstalls', async ({ device }, testInfo) => {
+    const APP_PATH = path.join(__dirname, '../resources/app/Playground-1.0.4.zip');
+    const PLAYGROUND = 'com.mobilenext.playground';
+
+    // Clean pre-state: uninstall if already present from a previous run.
+    const installedApps: AppInfo[] = await device.listApps();
+    if (installedApps.some((a) => a.bundleId === PLAYGROUND)) {
+      await device.uninstallApp(PLAYGROUND);
+    }
+
+    await device.installApp(APP_PATH);
+
+    await device.launchApp(PLAYGROUND);
+    const fg: AppInfo = await device.getForegroundApp();
+    await attachJson(testInfo, 'foreground after installApp + launchApp', fg);
+    expect(fg.bundleId).toBe(PLAYGROUND);
+
+    await device.uninstallApp(PLAYGROUND);
+
+    // Confirm it's gone.
+    const remaining: AppInfo[] = await device.listApps();
+    expect(remaining.some((a) => a.bundleId === PLAYGROUND)).toBe(false);
   });
 
 });
