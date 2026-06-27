@@ -1,5 +1,6 @@
 import type { Screen, Locator, GetByWebViewOptions } from '@mobilewright/core';
 import { CoreUtils } from '../../../core/utils/core.utils';
+import { LocatorActionError } from '../../../core/utils/locator-error';
 import type { AriaRole } from './aria.types';
 
 // TODO — remove these inferred shims when mobilewright exports HardwareButton/SwipeDirection types.
@@ -24,27 +25,41 @@ export class MobileUtils extends CoreUtils<Locator, Screen> {
   // surfaces — see ./aria.types.ts.
 
   getByRole(role: AriaRole, name?: string | RegExp): Locator {
-    return this.root.getByRole(role, name === undefined ? undefined : { name });
+    const locator = this.root.getByRole(role, name === undefined ? undefined : { name });
+    const desc = name !== undefined ? `getByRole('${role}', '${name}')` : `getByRole('${role}')`;
+    return this.describe(locator, desc);
   }
 
   // ─── iOS XCUIElementType finder (no web equivalent) ─────────────────
 
   getByType(type: string): Locator {
-    return this.root.getByType(type);
+    return this.describe(this.root.getByType(type), `getByType('${type}')`);
   }
 
   // ─── Mobile-only locator actions ────────────────────────────────────
 
   async doubleTap(locator: Locator): Promise<void> {
-    await locator.doubleTap();
+    try {
+      await locator.doubleTap();
+    } catch (cause) {
+      throw new LocatorActionError('doubleTap', this.descriptionOf(locator), cause);
+    }
   }
 
   async longPress(locator: Locator, duration?: number): Promise<void> {
-    await locator.longPress({ duration });
+    try {
+      await locator.longPress({ duration });
+    } catch (cause) {
+      throw new LocatorActionError('longPress', this.descriptionOf(locator), cause);
+    }
   }
 
   async swipeElement(locator: Locator, direction: SwipeDirection): Promise<void> {
-    await locator.swipe({ direction });
+    try {
+      await locator.swipe({ direction });
+    } catch (cause) {
+      throw new LocatorActionError('swipeElement', this.descriptionOf(locator), cause);
+    }
   }
 
   // ─── Mobile-only screen actions ─────────────────────────────────────
