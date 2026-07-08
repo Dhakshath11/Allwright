@@ -50,7 +50,7 @@ Open the snapshot file for the screen you're building (e.g. `apps/mobile/sample/
 Save at `apps/mobile/sample/screens/<feature>.screen.ts` (e.g. `contacts-list.screen.ts`). Reference shape: `apps/mobile/sample/screens/contacts.screen.ts`.
 
 ```ts
-import { test } from '@mobilewright/test';
+import { test, expect } from '@mobilewright/test';
 import type { Screen, Locator } from '@mobilewright/core';
 import { MobileUtils } from '../../utils/mobile.utils';
 
@@ -83,7 +83,7 @@ export class FeatureScreen {
   // Optional assertion helper — also wrapped in test.step.
   async expectThingVisible(label: string): Promise<void> {
     await test.step(`Expect "${label}" visible`, async () => {
-      await this.utils.expectVisible(this.utils.getByText(label));
+      await expect(this.utils.getByText(label)).toBeVisible();
     });
   }
 }
@@ -118,4 +118,5 @@ export class FeatureScreen {
 
 1. Update or write the spec that consumes it.
 2. Run `npm run test:mobile` to verify it compiles and runs.
-3. Delete the snapshot file you consumed from `apps/mobile/sample/resources/snapshots/`. Delete the `test()` block from `apps/mobile/sample/snapshots/_snapshots_<platform>.spec.ts` if no more screens are queued for that platform; delete the whole file if everything is built.
+3. **Keep the snapshot file** in `apps/mobile/sample/resources/snapshots/` — snapshots are a permanent record used by the Auto-Healer strategy. Never delete them. Recapture (overwrite) when the UI changes; the history is tracked in `snapshot_history.json`.
+4. Remove the capture `test()` block from `apps/mobile/sample/snapshots/_snapshots_<platform>.spec.ts` once the screen is built — the spec block is scaffolding, the JSON output is the artifact.

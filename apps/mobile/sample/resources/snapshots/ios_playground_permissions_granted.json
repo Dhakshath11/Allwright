@@ -1,0 +1,181 @@
+[
+  {
+    "type": "Button",
+    "label": "Back",
+    "identifier": "BackButton",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 0,
+      "y": 56,
+      "width": 68,
+      "height": 44
+    },
+    "children": [],
+    "raw": {
+      "type": "Button",
+      "label": "Back",
+      "name": "BackButton",
+      "identifier": "BackButton",
+      "rect": {
+        "x": 0,
+        "y": 56,
+        "width": 68,
+        "height": 44
+      }
+    }
+  },
+  {
+    "type": "StaticText",
+    "label": "Permissions",
+    "identifier": "Permissions",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 152,
+      "y": 64,
+      "width": 97,
+      "height": 26
+    },
+    "children": [],
+    "raw": {
+      "type": "StaticText",
+      "label": "Permissions",
+      "name": "Permissions",
+      "rect": {
+        "x": 152,
+        "y": 64,
+        "width": 97,
+        "height": 26
+      }
+    }
+  },
+  {
+    "type": "StaticText",
+    "label": "CAMERA",
+    "identifier": "CAMERA",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 16,
+      "y": 100,
+      "width": 370,
+      "height": 41
+    },
+    "children": [],
+    "raw": {
+      "type": "StaticText",
+      "label": "CAMERA",
+      "name": "CAMERA",
+      "rect": {
+        "x": 16,
+        "y": 100,
+        "width": 370,
+        "height": 41
+      }
+    }
+  },
+  {
+    "type": "StaticText",
+    "label": "Granted",
+    "identifier": "camera_permission_status",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 16,
+      "y": 142,
+      "width": 370,
+      "height": 44
+    },
+    "children": [],
+    "raw": {
+      "type": "StaticText",
+      "label": "Granted",
+      "name": "camera_permission_status",
+      "identifier": "camera_permission_status",
+      "rect": {
+        "x": 16,
+        "y": 142,
+        "width": 370,
+        "height": 44
+      }
+    }
+  },
+  {
+    "type": "Button",
+    "label": "Request Camera Permission",
+    "identifier": "request_camera_permission_button",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 16,
+      "y": 186,
+      "width": 370,
+      "height": 44
+    },
+    "children": [],
+    "raw": {
+      "type": "Button",
+      "label": "Request Camera Permission",
+      "name": "request_camera_permission_button",
+      "identifier": "request_camera_permission_button",
+      "rect": {
+        "x": 16,
+        "y": 186,
+        "width": 370,
+        "height": 44
+      }
+    }
+  },
+  {
+    "type": "StaticText",
+    "label": "4:17 PM",
+    "identifier": "4:17 PM",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 57,
+      "y": 14,
+      "width": 34,
+      "height": 20
+    },
+    "children": [],
+    "raw": {
+      "type": "StaticText",
+      "label": "4:17 PM",
+      "name": "4:17 PM",
+      "rect": {
+        "x": 57,
+        "y": 14,
+        "width": 34,
+        "height": 20
+      }
+    }
+  },
+  {
+    "type": "Button",
+    "label": "Return to Contacts",
+    "identifier": "breadcrumb",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 11,
+      "y": 33,
+      "width": 60,
+      "height": 13
+    },
+    "children": [],
+    "raw": {
+      "type": "Button",
+      "label": "Return to Contacts",
+      "name": "breadcrumb",
+      "identifier": "breadcrumb",
+      "rect": {
+        "x": 11,
+        "y": 33,
+        "width": 60,
+        "height": 13
+      }
+    }
+  }
+]

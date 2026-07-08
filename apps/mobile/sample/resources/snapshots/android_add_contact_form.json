@@ -1,0 +1,2896 @@
+[
+  {
+    "type": "android.widget.FrameLayout",
+    "identifier": "com.android.systemui:id/status_bar_launch_animation_container",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1280,
+      "height": 156
+    },
+    "children": [],
+    "raw": {
+      "type": "android.widget.FrameLayout",
+      "text": "",
+      "identifier": "com.android.systemui:id/status_bar_launch_animation_container",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 156
+      }
+    }
+  },
+  {
+    "type": "android.widget.FrameLayout",
+    "identifier": "com.android.systemui:id/status_bar_container",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1280,
+      "height": 156
+    },
+    "children": [
+      {
+        "type": "android.widget.FrameLayout",
+        "identifier": "com.android.systemui:id/status_bar",
+        "isVisible": true,
+        "isEnabled": true,
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 156
+        },
+        "children": [
+          {
+            "type": "android.widget.LinearLayout",
+            "identifier": "com.android.systemui:id/status_bar_contents",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 0,
+              "y": 0,
+              "width": 1220,
+              "height": 156
+            },
+            "children": [
+              {
+                "type": "android.widget.FrameLayout",
+                "identifier": "com.android.systemui:id/status_bar_start_side_container",
+                "isVisible": true,
+                "isEnabled": true,
+                "bounds": {
+                  "x": 48,
+                  "y": 0,
+                  "width": 525,
+                  "height": 156
+                },
+                "children": [
+                  {
+                    "type": "android.widget.FrameLayout",
+                    "identifier": "com.android.systemui:id/status_bar_start_side_content",
+                    "isVisible": true,
+                    "isEnabled": true,
+                    "bounds": {
+                      "x": 48,
+                      "y": 0,
+                      "width": 130,
+                      "height": 156
+                    },
+                    "children": [
+                      {
+                        "type": "android.widget.LinearLayout",
+                        "identifier": "com.android.systemui:id/status_bar_start_side_except_heads_up",
+                        "isVisible": true,
+                        "isEnabled": true,
+                        "bounds": {
+                          "x": 48,
+                          "y": 0,
+                          "width": 130,
+                          "height": 156
+                        },
+                        "children": [
+                          {
+                            "type": "android.widget.TextView",
+                            "label": "4:02 PM",
+                            "identifier": "com.android.systemui:id/clock",
+                            "text": "4:02",
+                            "isVisible": true,
+                            "isEnabled": true,
+                            "bounds": {
+                              "x": 48,
+                              "y": 45,
+                              "width": 130,
+                              "height": 66
+                            },
+                            "children": [],
+                            "raw": {
+                              "type": "android.widget.TextView",
+                              "label": "4:02 PM",
+                              "text": "4:02",
+                              "identifier": "com.android.systemui:id/clock",
+                              "rect": {
+                                "x": 48,
+                                "y": 45,
+                                "width": 130,
+                                "height": 66
+                              }
+                            }
+                          }
+                        ],
+                        "raw": {
+                          "type": "android.widget.LinearLayout",
+                          "text": "",
+                          "identifier": "com.android.systemui:id/status_bar_start_side_except_heads_up",
+                          "rect": {
+                            "x": 48,
+                            "y": 0,
+                            "width": 130,
+                            "height": 156
+                          },
+                          "children": [
+                            {
+                              "type": "android.widget.TextView",
+                              "label": "4:02 PM",
+                              "text": "4:02",
+                              "identifier": "com.android.systemui:id/clock",
+                              "rect": {
+                                "x": 48,
+                                "y": 45,
+                                "width": 130,
+                                "height": 66
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "raw": {
+                      "type": "android.widget.FrameLayout",
+                      "text": "",
+                      "identifier": "com.android.systemui:id/status_bar_start_side_content",
+                      "rect": {
+                        "x": 48,
+                        "y": 0,
+                        "width": 130,
+                        "height": 156
+                      },
+                      "children": [
+                        {
+                          "type": "android.widget.LinearLayout",
+                          "text": "",
+                          "identifier": "com.android.systemui:id/status_bar_start_side_except_heads_up",
+                          "rect": {
+                            "x": 48,
+                            "y": 0,
+                            "width": 130,
+                            "height": 156
+                          },
+                          "children": [
+                            {
+                              "type": "android.widget.TextView",
+                              "label": "4:02 PM",
+                              "text": "4:02",
+                              "identifier": "com.android.systemui:id/clock",
+                              "rect": {
+                                "x": 48,
+                                "y": 45,
+                                "width": 130,
+                                "height": 66
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "raw": {
+                  "type": "android.widget.FrameLayout",
+                  "text": "",
+                  "identifier": "com.android.systemui:id/status_bar_start_side_container",
+                  "rect": {
+                    "x": 48,
+                    "y": 0,
+                    "width": 525,
+                    "height": 156
+                  },
+                  "children": [
+                    {
+                      "type": "android.widget.FrameLayout",
+                      "text": "",
+                      "identifier": "com.android.systemui:id/status_bar_start_side_content",
+                      "rect": {
+                        "x": 48,
+                        "y": 0,
+                        "width": 130,
+                        "height": 156
+                      },
+                      "children": [
+                        {
+                          "type": "android.widget.LinearLayout",
+                          "text": "",
+                          "identifier": "com.android.systemui:id/status_bar_start_side_except_heads_up",
+                          "rect": {
+                            "x": 48,
+                            "y": 0,
+                            "width": 130,
+                            "height": 156
+                          },
+                          "children": [
+                            {
+                              "type": "android.widget.TextView",
+                              "label": "4:02 PM",
+                              "text": "4:02",
+                              "identifier": "com.android.systemui:id/clock",
+                              "rect": {
+                                "x": 48,
+                                "y": 45,
+                                "width": 130,
+                                "height": 66
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "android.view.View",
+                "identifier": "com.android.systemui:id/cutout_space_view",
+                "isVisible": true,
+                "isEnabled": true,
+                "bounds": {
+                  "x": 573,
+                  "y": 0,
+                  "width": 109,
+                  "height": 156
+                },
+                "children": [],
+                "raw": {
+                  "type": "android.view.View",
+                  "text": "",
+                  "identifier": "com.android.systemui:id/cutout_space_view",
+                  "rect": {
+                    "x": 573,
+                    "y": 0,
+                    "width": 109,
+                    "height": 156
+                  }
+                }
+              },
+              {
+                "type": "android.widget.FrameLayout",
+                "identifier": "com.android.systemui:id/status_bar_end_side_container",
+                "isVisible": true,
+                "isEnabled": true,
+                "bounds": {
+                  "x": 682,
+                  "y": 0,
+                  "width": 526,
+                  "height": 156
+                },
+                "children": [
+                  {
+                    "type": "android.widget.LinearLayout",
+                    "identifier": "com.android.systemui:id/status_bar_end_side_content",
+                    "isVisible": true,
+                    "isEnabled": true,
+                    "bounds": {
+                      "x": 963,
+                      "y": 0,
+                      "width": 245,
+                      "height": 156
+                    },
+                    "children": [
+                      {
+                        "type": "android.widget.LinearLayout",
+                        "identifier": "com.android.systemui:id/system_icons",
+                        "isVisible": true,
+                        "isEnabled": true,
+                        "bounds": {
+                          "x": 963,
+                          "y": 45,
+                          "width": 245,
+                          "height": 66
+                        },
+                        "children": [
+                          {
+                            "type": "android.widget.LinearLayout",
+                            "identifier": "com.android.systemui:id/statusIcons",
+                            "isVisible": true,
+                            "isEnabled": true,
+                            "bounds": {
+                              "x": 972,
+                              "y": 45,
+                              "width": 144,
+                              "height": 66
+                            },
+                            "children": [
+                              {
+                                "type": "android.widget.FrameLayout",
+                                "label": "T-Mobile, one bar.",
+                                "identifier": "com.android.systemui:id/mobile_combo",
+                                "isVisible": true,
+                                "isEnabled": true,
+                                "bounds": {
+                                  "x": 972,
+                                  "y": 45,
+                                  "width": 69,
+                                  "height": 66
+                                },
+                                "children": [
+                                  {
+                                    "type": "android.widget.LinearLayout",
+                                    "identifier": "com.android.systemui:id/mobile_group",
+                                    "isVisible": true,
+                                    "isEnabled": true,
+                                    "bounds": {
+                                      "x": 981,
+                                      "y": 45,
+                                      "width": 51,
+                                      "height": 66
+                                    },
+                                    "children": [
+                                      {
+                                        "type": "android.widget.ImageView",
+                                        "identifier": "com.android.systemui:id/mobile_signal",
+                                        "isVisible": true,
+                                        "isEnabled": true,
+                                        "bounds": {
+                                          "x": 981,
+                                          "y": 60,
+                                          "width": 51,
+                                          "height": 36
+                                        },
+                                        "children": [],
+                                        "raw": {
+                                          "type": "android.widget.ImageView",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/mobile_signal",
+                                          "rect": {
+                                            "x": 981,
+                                            "y": 60,
+                                            "width": 51,
+                                            "height": 36
+                                          }
+                                        }
+                                      }
+                                    ],
+                                    "raw": {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/mobile_group",
+                                      "rect": {
+                                        "x": 981,
+                                        "y": 45,
+                                        "width": 51,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.ImageView",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/mobile_signal",
+                                          "rect": {
+                                            "x": 981,
+                                            "y": 60,
+                                            "width": 51,
+                                            "height": 36
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ],
+                                "raw": {
+                                  "type": "android.widget.FrameLayout",
+                                  "label": "T-Mobile, one bar.",
+                                  "text": "",
+                                  "identifier": "com.android.systemui:id/mobile_combo",
+                                  "rect": {
+                                    "x": 972,
+                                    "y": 45,
+                                    "width": 69,
+                                    "height": 66
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/mobile_group",
+                                      "rect": {
+                                        "x": 981,
+                                        "y": 45,
+                                        "width": 51,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.ImageView",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/mobile_signal",
+                                          "rect": {
+                                            "x": 981,
+                                            "y": 60,
+                                            "width": 51,
+                                            "height": 36
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "type": "android.widget.FrameLayout",
+                                "identifier": "com.android.systemui:id/wifi_combo",
+                                "isVisible": true,
+                                "isEnabled": true,
+                                "bounds": {
+                                  "x": 1041,
+                                  "y": 45,
+                                  "width": 66,
+                                  "height": 66
+                                },
+                                "children": [
+                                  {
+                                    "type": "android.widget.LinearLayout",
+                                    "identifier": "com.android.systemui:id/wifi_group",
+                                    "isVisible": true,
+                                    "isEnabled": true,
+                                    "bounds": {
+                                      "x": 1050,
+                                      "y": 45,
+                                      "width": 48,
+                                      "height": 66
+                                    },
+                                    "children": [
+                                      {
+                                        "type": "android.widget.FrameLayout",
+                                        "identifier": "com.android.systemui:id/wifi_combo",
+                                        "isVisible": true,
+                                        "isEnabled": true,
+                                        "bounds": {
+                                          "x": 1050,
+                                          "y": 60,
+                                          "width": 48,
+                                          "height": 36
+                                        },
+                                        "children": [
+                                          {
+                                            "type": "android.widget.ImageView",
+                                            "label": "Wifi signal full.",
+                                            "identifier": "com.android.systemui:id/wifi_signal",
+                                            "isVisible": true,
+                                            "isEnabled": true,
+                                            "bounds": {
+                                              "x": 1050,
+                                              "y": 60,
+                                              "width": 48,
+                                              "height": 36
+                                            },
+                                            "children": [],
+                                            "raw": {
+                                              "type": "android.widget.ImageView",
+                                              "label": "Wifi signal full.",
+                                              "text": "",
+                                              "identifier": "com.android.systemui:id/wifi_signal",
+                                              "rect": {
+                                                "x": 1050,
+                                                "y": 60,
+                                                "width": 48,
+                                                "height": 36
+                                              }
+                                            }
+                                          }
+                                        ],
+                                        "raw": {
+                                          "type": "android.widget.FrameLayout",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/wifi_combo",
+                                          "rect": {
+                                            "x": 1050,
+                                            "y": 60,
+                                            "width": 48,
+                                            "height": 36
+                                          },
+                                          "children": [
+                                            {
+                                              "type": "android.widget.ImageView",
+                                              "label": "Wifi signal full.",
+                                              "text": "",
+                                              "identifier": "com.android.systemui:id/wifi_signal",
+                                              "rect": {
+                                                "x": 1050,
+                                                "y": 60,
+                                                "width": 48,
+                                                "height": 36
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    ],
+                                    "raw": {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/wifi_group",
+                                      "rect": {
+                                        "x": 1050,
+                                        "y": 45,
+                                        "width": 48,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.FrameLayout",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/wifi_combo",
+                                          "rect": {
+                                            "x": 1050,
+                                            "y": 60,
+                                            "width": 48,
+                                            "height": 36
+                                          },
+                                          "children": [
+                                            {
+                                              "type": "android.widget.ImageView",
+                                              "label": "Wifi signal full.",
+                                              "text": "",
+                                              "identifier": "com.android.systemui:id/wifi_signal",
+                                              "rect": {
+                                                "x": 1050,
+                                                "y": 60,
+                                                "width": 48,
+                                                "height": 36
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ],
+                                "raw": {
+                                  "type": "android.widget.FrameLayout",
+                                  "text": "",
+                                  "identifier": "com.android.systemui:id/wifi_combo",
+                                  "rect": {
+                                    "x": 1041,
+                                    "y": 45,
+                                    "width": 66,
+                                    "height": 66
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/wifi_group",
+                                      "rect": {
+                                        "x": 1050,
+                                        "y": 45,
+                                        "width": 48,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.FrameLayout",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/wifi_combo",
+                                          "rect": {
+                                            "x": 1050,
+                                            "y": 60,
+                                            "width": 48,
+                                            "height": 36
+                                          },
+                                          "children": [
+                                            {
+                                              "type": "android.widget.ImageView",
+                                              "label": "Wifi signal full.",
+                                              "text": "",
+                                              "identifier": "com.android.systemui:id/wifi_signal",
+                                              "rect": {
+                                                "x": 1050,
+                                                "y": 60,
+                                                "width": 48,
+                                                "height": 36
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            ],
+                            "raw": {
+                              "type": "android.widget.LinearLayout",
+                              "text": "",
+                              "identifier": "com.android.systemui:id/statusIcons",
+                              "rect": {
+                                "x": 972,
+                                "y": 45,
+                                "width": 144,
+                                "height": 66
+                              },
+                              "children": [
+                                {
+                                  "type": "android.widget.FrameLayout",
+                                  "label": "T-Mobile, one bar.",
+                                  "text": "",
+                                  "identifier": "com.android.systemui:id/mobile_combo",
+                                  "rect": {
+                                    "x": 972,
+                                    "y": 45,
+                                    "width": 69,
+                                    "height": 66
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/mobile_group",
+                                      "rect": {
+                                        "x": 981,
+                                        "y": 45,
+                                        "width": 51,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.ImageView",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/mobile_signal",
+                                          "rect": {
+                                            "x": 981,
+                                            "y": 60,
+                                            "width": 51,
+                                            "height": 36
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "android.widget.FrameLayout",
+                                  "text": "",
+                                  "identifier": "com.android.systemui:id/wifi_combo",
+                                  "rect": {
+                                    "x": 1041,
+                                    "y": 45,
+                                    "width": 66,
+                                    "height": 66
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/wifi_group",
+                                      "rect": {
+                                        "x": 1050,
+                                        "y": 45,
+                                        "width": 48,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.FrameLayout",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/wifi_combo",
+                                          "rect": {
+                                            "x": 1050,
+                                            "y": 60,
+                                            "width": 48,
+                                            "height": 36
+                                          },
+                                          "children": [
+                                            {
+                                              "type": "android.widget.ImageView",
+                                              "label": "Wifi signal full.",
+                                              "text": "",
+                                              "identifier": "com.android.systemui:id/wifi_signal",
+                                              "rect": {
+                                                "x": 1050,
+                                                "y": 60,
+                                                "width": 48,
+                                                "height": 36
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "type": "android.view.View",
+                            "identifier": "com.android.systemui:id/battery",
+                            "isVisible": true,
+                            "isEnabled": true,
+                            "bounds": {
+                              "x": 1116,
+                              "y": 58,
+                              "width": 80,
+                              "height": 39
+                            },
+                            "children": [
+                              {
+                                "type": "android.view.View",
+                                "label": "Battery 100 percent.",
+                                "isVisible": true,
+                                "isEnabled": true,
+                                "bounds": {
+                                  "x": 1116,
+                                  "y": 58,
+                                  "width": 72,
+                                  "height": 39
+                                },
+                                "children": [],
+                                "raw": {
+                                  "type": "android.view.View",
+                                  "label": "Battery 100 percent.",
+                                  "text": "",
+                                  "rect": {
+                                    "x": 1116,
+                                    "y": 58,
+                                    "width": 72,
+                                    "height": 39
+                                  }
+                                }
+                              }
+                            ],
+                            "raw": {
+                              "type": "android.view.View",
+                              "text": "",
+                              "identifier": "com.android.systemui:id/battery",
+                              "rect": {
+                                "x": 1116,
+                                "y": 58,
+                                "width": 80,
+                                "height": 39
+                              },
+                              "children": [
+                                {
+                                  "type": "android.view.View",
+                                  "label": "Battery 100 percent.",
+                                  "text": "",
+                                  "rect": {
+                                    "x": 1116,
+                                    "y": 58,
+                                    "width": 72,
+                                    "height": 39
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ],
+                        "raw": {
+                          "type": "android.widget.LinearLayout",
+                          "text": "",
+                          "identifier": "com.android.systemui:id/system_icons",
+                          "rect": {
+                            "x": 963,
+                            "y": 45,
+                            "width": 245,
+                            "height": 66
+                          },
+                          "children": [
+                            {
+                              "type": "android.widget.LinearLayout",
+                              "text": "",
+                              "identifier": "com.android.systemui:id/statusIcons",
+                              "rect": {
+                                "x": 972,
+                                "y": 45,
+                                "width": 144,
+                                "height": 66
+                              },
+                              "children": [
+                                {
+                                  "type": "android.widget.FrameLayout",
+                                  "label": "T-Mobile, one bar.",
+                                  "text": "",
+                                  "identifier": "com.android.systemui:id/mobile_combo",
+                                  "rect": {
+                                    "x": 972,
+                                    "y": 45,
+                                    "width": 69,
+                                    "height": 66
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/mobile_group",
+                                      "rect": {
+                                        "x": 981,
+                                        "y": 45,
+                                        "width": 51,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.ImageView",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/mobile_signal",
+                                          "rect": {
+                                            "x": 981,
+                                            "y": 60,
+                                            "width": 51,
+                                            "height": 36
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "android.widget.FrameLayout",
+                                  "text": "",
+                                  "identifier": "com.android.systemui:id/wifi_combo",
+                                  "rect": {
+                                    "x": 1041,
+                                    "y": 45,
+                                    "width": 66,
+                                    "height": 66
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/wifi_group",
+                                      "rect": {
+                                        "x": 1050,
+                                        "y": 45,
+                                        "width": 48,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.FrameLayout",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/wifi_combo",
+                                          "rect": {
+                                            "x": 1050,
+                                            "y": 60,
+                                            "width": 48,
+                                            "height": 36
+                                          },
+                                          "children": [
+                                            {
+                                              "type": "android.widget.ImageView",
+                                              "label": "Wifi signal full.",
+                                              "text": "",
+                                              "identifier": "com.android.systemui:id/wifi_signal",
+                                              "rect": {
+                                                "x": 1050,
+                                                "y": 60,
+                                                "width": 48,
+                                                "height": 36
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "android.view.View",
+                              "text": "",
+                              "identifier": "com.android.systemui:id/battery",
+                              "rect": {
+                                "x": 1116,
+                                "y": 58,
+                                "width": 80,
+                                "height": 39
+                              },
+                              "children": [
+                                {
+                                  "type": "android.view.View",
+                                  "label": "Battery 100 percent.",
+                                  "text": "",
+                                  "rect": {
+                                    "x": 1116,
+                                    "y": 58,
+                                    "width": 72,
+                                    "height": 39
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "raw": {
+                      "type": "android.widget.LinearLayout",
+                      "text": "",
+                      "identifier": "com.android.systemui:id/status_bar_end_side_content",
+                      "rect": {
+                        "x": 963,
+                        "y": 0,
+                        "width": 245,
+                        "height": 156
+                      },
+                      "children": [
+                        {
+                          "type": "android.widget.LinearLayout",
+                          "text": "",
+                          "identifier": "com.android.systemui:id/system_icons",
+                          "rect": {
+                            "x": 963,
+                            "y": 45,
+                            "width": 245,
+                            "height": 66
+                          },
+                          "children": [
+                            {
+                              "type": "android.widget.LinearLayout",
+                              "text": "",
+                              "identifier": "com.android.systemui:id/statusIcons",
+                              "rect": {
+                                "x": 972,
+                                "y": 45,
+                                "width": 144,
+                                "height": 66
+                              },
+                              "children": [
+                                {
+                                  "type": "android.widget.FrameLayout",
+                                  "label": "T-Mobile, one bar.",
+                                  "text": "",
+                                  "identifier": "com.android.systemui:id/mobile_combo",
+                                  "rect": {
+                                    "x": 972,
+                                    "y": 45,
+                                    "width": 69,
+                                    "height": 66
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/mobile_group",
+                                      "rect": {
+                                        "x": 981,
+                                        "y": 45,
+                                        "width": 51,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.ImageView",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/mobile_signal",
+                                          "rect": {
+                                            "x": 981,
+                                            "y": 60,
+                                            "width": 51,
+                                            "height": 36
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "android.widget.FrameLayout",
+                                  "text": "",
+                                  "identifier": "com.android.systemui:id/wifi_combo",
+                                  "rect": {
+                                    "x": 1041,
+                                    "y": 45,
+                                    "width": 66,
+                                    "height": 66
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/wifi_group",
+                                      "rect": {
+                                        "x": 1050,
+                                        "y": 45,
+                                        "width": 48,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.FrameLayout",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/wifi_combo",
+                                          "rect": {
+                                            "x": 1050,
+                                            "y": 60,
+                                            "width": 48,
+                                            "height": 36
+                                          },
+                                          "children": [
+                                            {
+                                              "type": "android.widget.ImageView",
+                                              "label": "Wifi signal full.",
+                                              "text": "",
+                                              "identifier": "com.android.systemui:id/wifi_signal",
+                                              "rect": {
+                                                "x": 1050,
+                                                "y": 60,
+                                                "width": 48,
+                                                "height": 36
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "android.view.View",
+                              "text": "",
+                              "identifier": "com.android.systemui:id/battery",
+                              "rect": {
+                                "x": 1116,
+                                "y": 58,
+                                "width": 80,
+                                "height": 39
+                              },
+                              "children": [
+                                {
+                                  "type": "android.view.View",
+                                  "label": "Battery 100 percent.",
+                                  "text": "",
+                                  "rect": {
+                                    "x": 1116,
+                                    "y": 58,
+                                    "width": 72,
+                                    "height": 39
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "raw": {
+                  "type": "android.widget.FrameLayout",
+                  "text": "",
+                  "identifier": "com.android.systemui:id/status_bar_end_side_container",
+                  "rect": {
+                    "x": 682,
+                    "y": 0,
+                    "width": 526,
+                    "height": 156
+                  },
+                  "children": [
+                    {
+                      "type": "android.widget.LinearLayout",
+                      "text": "",
+                      "identifier": "com.android.systemui:id/status_bar_end_side_content",
+                      "rect": {
+                        "x": 963,
+                        "y": 0,
+                        "width": 245,
+                        "height": 156
+                      },
+                      "children": [
+                        {
+                          "type": "android.widget.LinearLayout",
+                          "text": "",
+                          "identifier": "com.android.systemui:id/system_icons",
+                          "rect": {
+                            "x": 963,
+                            "y": 45,
+                            "width": 245,
+                            "height": 66
+                          },
+                          "children": [
+                            {
+                              "type": "android.widget.LinearLayout",
+                              "text": "",
+                              "identifier": "com.android.systemui:id/statusIcons",
+                              "rect": {
+                                "x": 972,
+                                "y": 45,
+                                "width": 144,
+                                "height": 66
+                              },
+                              "children": [
+                                {
+                                  "type": "android.widget.FrameLayout",
+                                  "label": "T-Mobile, one bar.",
+                                  "text": "",
+                                  "identifier": "com.android.systemui:id/mobile_combo",
+                                  "rect": {
+                                    "x": 972,
+                                    "y": 45,
+                                    "width": 69,
+                                    "height": 66
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/mobile_group",
+                                      "rect": {
+                                        "x": 981,
+                                        "y": 45,
+                                        "width": 51,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.ImageView",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/mobile_signal",
+                                          "rect": {
+                                            "x": 981,
+                                            "y": 60,
+                                            "width": 51,
+                                            "height": 36
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "android.widget.FrameLayout",
+                                  "text": "",
+                                  "identifier": "com.android.systemui:id/wifi_combo",
+                                  "rect": {
+                                    "x": 1041,
+                                    "y": 45,
+                                    "width": 66,
+                                    "height": 66
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/wifi_group",
+                                      "rect": {
+                                        "x": 1050,
+                                        "y": 45,
+                                        "width": 48,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.FrameLayout",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/wifi_combo",
+                                          "rect": {
+                                            "x": 1050,
+                                            "y": 60,
+                                            "width": 48,
+                                            "height": 36
+                                          },
+                                          "children": [
+                                            {
+                                              "type": "android.widget.ImageView",
+                                              "label": "Wifi signal full.",
+                                              "text": "",
+                                              "identifier": "com.android.systemui:id/wifi_signal",
+                                              "rect": {
+                                                "x": 1050,
+                                                "y": 60,
+                                                "width": 48,
+                                                "height": 36
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "android.view.View",
+                              "text": "",
+                              "identifier": "com.android.systemui:id/battery",
+                              "rect": {
+                                "x": 1116,
+                                "y": 58,
+                                "width": 80,
+                                "height": 39
+                              },
+                              "children": [
+                                {
+                                  "type": "android.view.View",
+                                  "label": "Battery 100 percent.",
+                                  "text": "",
+                                  "rect": {
+                                    "x": 1116,
+                                    "y": 58,
+                                    "width": 72,
+                                    "height": 39
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "raw": {
+              "type": "android.widget.LinearLayout",
+              "text": "",
+              "identifier": "com.android.systemui:id/status_bar_contents",
+              "rect": {
+                "x": 0,
+                "y": 0,
+                "width": 1220,
+                "height": 156
+              },
+              "children": [
+                {
+                  "type": "android.widget.FrameLayout",
+                  "text": "",
+                  "identifier": "com.android.systemui:id/status_bar_start_side_container",
+                  "rect": {
+                    "x": 48,
+                    "y": 0,
+                    "width": 525,
+                    "height": 156
+                  },
+                  "children": [
+                    {
+                      "type": "android.widget.FrameLayout",
+                      "text": "",
+                      "identifier": "com.android.systemui:id/status_bar_start_side_content",
+                      "rect": {
+                        "x": 48,
+                        "y": 0,
+                        "width": 130,
+                        "height": 156
+                      },
+                      "children": [
+                        {
+                          "type": "android.widget.LinearLayout",
+                          "text": "",
+                          "identifier": "com.android.systemui:id/status_bar_start_side_except_heads_up",
+                          "rect": {
+                            "x": 48,
+                            "y": 0,
+                            "width": 130,
+                            "height": 156
+                          },
+                          "children": [
+                            {
+                              "type": "android.widget.TextView",
+                              "label": "4:02 PM",
+                              "text": "4:02",
+                              "identifier": "com.android.systemui:id/clock",
+                              "rect": {
+                                "x": 48,
+                                "y": 45,
+                                "width": 130,
+                                "height": 66
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "android.view.View",
+                  "text": "",
+                  "identifier": "com.android.systemui:id/cutout_space_view",
+                  "rect": {
+                    "x": 573,
+                    "y": 0,
+                    "width": 109,
+                    "height": 156
+                  }
+                },
+                {
+                  "type": "android.widget.FrameLayout",
+                  "text": "",
+                  "identifier": "com.android.systemui:id/status_bar_end_side_container",
+                  "rect": {
+                    "x": 682,
+                    "y": 0,
+                    "width": 526,
+                    "height": 156
+                  },
+                  "children": [
+                    {
+                      "type": "android.widget.LinearLayout",
+                      "text": "",
+                      "identifier": "com.android.systemui:id/status_bar_end_side_content",
+                      "rect": {
+                        "x": 963,
+                        "y": 0,
+                        "width": 245,
+                        "height": 156
+                      },
+                      "children": [
+                        {
+                          "type": "android.widget.LinearLayout",
+                          "text": "",
+                          "identifier": "com.android.systemui:id/system_icons",
+                          "rect": {
+                            "x": 963,
+                            "y": 45,
+                            "width": 245,
+                            "height": 66
+                          },
+                          "children": [
+                            {
+                              "type": "android.widget.LinearLayout",
+                              "text": "",
+                              "identifier": "com.android.systemui:id/statusIcons",
+                              "rect": {
+                                "x": 972,
+                                "y": 45,
+                                "width": 144,
+                                "height": 66
+                              },
+                              "children": [
+                                {
+                                  "type": "android.widget.FrameLayout",
+                                  "label": "T-Mobile, one bar.",
+                                  "text": "",
+                                  "identifier": "com.android.systemui:id/mobile_combo",
+                                  "rect": {
+                                    "x": 972,
+                                    "y": 45,
+                                    "width": 69,
+                                    "height": 66
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/mobile_group",
+                                      "rect": {
+                                        "x": 981,
+                                        "y": 45,
+                                        "width": 51,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.ImageView",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/mobile_signal",
+                                          "rect": {
+                                            "x": 981,
+                                            "y": 60,
+                                            "width": 51,
+                                            "height": 36
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "android.widget.FrameLayout",
+                                  "text": "",
+                                  "identifier": "com.android.systemui:id/wifi_combo",
+                                  "rect": {
+                                    "x": 1041,
+                                    "y": 45,
+                                    "width": 66,
+                                    "height": 66
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/wifi_group",
+                                      "rect": {
+                                        "x": 1050,
+                                        "y": 45,
+                                        "width": 48,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.FrameLayout",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/wifi_combo",
+                                          "rect": {
+                                            "x": 1050,
+                                            "y": 60,
+                                            "width": 48,
+                                            "height": 36
+                                          },
+                                          "children": [
+                                            {
+                                              "type": "android.widget.ImageView",
+                                              "label": "Wifi signal full.",
+                                              "text": "",
+                                              "identifier": "com.android.systemui:id/wifi_signal",
+                                              "rect": {
+                                                "x": 1050,
+                                                "y": 60,
+                                                "width": 48,
+                                                "height": 36
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "android.view.View",
+                              "text": "",
+                              "identifier": "com.android.systemui:id/battery",
+                              "rect": {
+                                "x": 1116,
+                                "y": 58,
+                                "width": 80,
+                                "height": 39
+                              },
+                              "children": [
+                                {
+                                  "type": "android.view.View",
+                                  "label": "Battery 100 percent.",
+                                  "text": "",
+                                  "rect": {
+                                    "x": 1116,
+                                    "y": 58,
+                                    "width": 72,
+                                    "height": 39
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "raw": {
+          "type": "android.widget.FrameLayout",
+          "text": "",
+          "identifier": "com.android.systemui:id/status_bar",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 156
+          },
+          "children": [
+            {
+              "type": "android.widget.LinearLayout",
+              "text": "",
+              "identifier": "com.android.systemui:id/status_bar_contents",
+              "rect": {
+                "x": 0,
+                "y": 0,
+                "width": 1220,
+                "height": 156
+              },
+              "children": [
+                {
+                  "type": "android.widget.FrameLayout",
+                  "text": "",
+                  "identifier": "com.android.systemui:id/status_bar_start_side_container",
+                  "rect": {
+                    "x": 48,
+                    "y": 0,
+                    "width": 525,
+                    "height": 156
+                  },
+                  "children": [
+                    {
+                      "type": "android.widget.FrameLayout",
+                      "text": "",
+                      "identifier": "com.android.systemui:id/status_bar_start_side_content",
+                      "rect": {
+                        "x": 48,
+                        "y": 0,
+                        "width": 130,
+                        "height": 156
+                      },
+                      "children": [
+                        {
+                          "type": "android.widget.LinearLayout",
+                          "text": "",
+                          "identifier": "com.android.systemui:id/status_bar_start_side_except_heads_up",
+                          "rect": {
+                            "x": 48,
+                            "y": 0,
+                            "width": 130,
+                            "height": 156
+                          },
+                          "children": [
+                            {
+                              "type": "android.widget.TextView",
+                              "label": "4:02 PM",
+                              "text": "4:02",
+                              "identifier": "com.android.systemui:id/clock",
+                              "rect": {
+                                "x": 48,
+                                "y": 45,
+                                "width": 130,
+                                "height": 66
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "android.view.View",
+                  "text": "",
+                  "identifier": "com.android.systemui:id/cutout_space_view",
+                  "rect": {
+                    "x": 573,
+                    "y": 0,
+                    "width": 109,
+                    "height": 156
+                  }
+                },
+                {
+                  "type": "android.widget.FrameLayout",
+                  "text": "",
+                  "identifier": "com.android.systemui:id/status_bar_end_side_container",
+                  "rect": {
+                    "x": 682,
+                    "y": 0,
+                    "width": 526,
+                    "height": 156
+                  },
+                  "children": [
+                    {
+                      "type": "android.widget.LinearLayout",
+                      "text": "",
+                      "identifier": "com.android.systemui:id/status_bar_end_side_content",
+                      "rect": {
+                        "x": 963,
+                        "y": 0,
+                        "width": 245,
+                        "height": 156
+                      },
+                      "children": [
+                        {
+                          "type": "android.widget.LinearLayout",
+                          "text": "",
+                          "identifier": "com.android.systemui:id/system_icons",
+                          "rect": {
+                            "x": 963,
+                            "y": 45,
+                            "width": 245,
+                            "height": 66
+                          },
+                          "children": [
+                            {
+                              "type": "android.widget.LinearLayout",
+                              "text": "",
+                              "identifier": "com.android.systemui:id/statusIcons",
+                              "rect": {
+                                "x": 972,
+                                "y": 45,
+                                "width": 144,
+                                "height": 66
+                              },
+                              "children": [
+                                {
+                                  "type": "android.widget.FrameLayout",
+                                  "label": "T-Mobile, one bar.",
+                                  "text": "",
+                                  "identifier": "com.android.systemui:id/mobile_combo",
+                                  "rect": {
+                                    "x": 972,
+                                    "y": 45,
+                                    "width": 69,
+                                    "height": 66
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/mobile_group",
+                                      "rect": {
+                                        "x": 981,
+                                        "y": 45,
+                                        "width": 51,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.ImageView",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/mobile_signal",
+                                          "rect": {
+                                            "x": 981,
+                                            "y": 60,
+                                            "width": 51,
+                                            "height": 36
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "android.widget.FrameLayout",
+                                  "text": "",
+                                  "identifier": "com.android.systemui:id/wifi_combo",
+                                  "rect": {
+                                    "x": 1041,
+                                    "y": 45,
+                                    "width": 66,
+                                    "height": 66
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/wifi_group",
+                                      "rect": {
+                                        "x": 1050,
+                                        "y": 45,
+                                        "width": 48,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.FrameLayout",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/wifi_combo",
+                                          "rect": {
+                                            "x": 1050,
+                                            "y": 60,
+                                            "width": 48,
+                                            "height": 36
+                                          },
+                                          "children": [
+                                            {
+                                              "type": "android.widget.ImageView",
+                                              "label": "Wifi signal full.",
+                                              "text": "",
+                                              "identifier": "com.android.systemui:id/wifi_signal",
+                                              "rect": {
+                                                "x": 1050,
+                                                "y": 60,
+                                                "width": 48,
+                                                "height": 36
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "android.view.View",
+                              "text": "",
+                              "identifier": "com.android.systemui:id/battery",
+                              "rect": {
+                                "x": 1116,
+                                "y": 58,
+                                "width": 80,
+                                "height": 39
+                              },
+                              "children": [
+                                {
+                                  "type": "android.view.View",
+                                  "label": "Battery 100 percent.",
+                                  "text": "",
+                                  "rect": {
+                                    "x": 1116,
+                                    "y": 58,
+                                    "width": 72,
+                                    "height": 39
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "raw": {
+      "type": "android.widget.FrameLayout",
+      "text": "",
+      "identifier": "com.android.systemui:id/status_bar_container",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 156
+      },
+      "children": [
+        {
+          "type": "android.widget.FrameLayout",
+          "text": "",
+          "identifier": "com.android.systemui:id/status_bar",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 156
+          },
+          "children": [
+            {
+              "type": "android.widget.LinearLayout",
+              "text": "",
+              "identifier": "com.android.systemui:id/status_bar_contents",
+              "rect": {
+                "x": 0,
+                "y": 0,
+                "width": 1220,
+                "height": 156
+              },
+              "children": [
+                {
+                  "type": "android.widget.FrameLayout",
+                  "text": "",
+                  "identifier": "com.android.systemui:id/status_bar_start_side_container",
+                  "rect": {
+                    "x": 48,
+                    "y": 0,
+                    "width": 525,
+                    "height": 156
+                  },
+                  "children": [
+                    {
+                      "type": "android.widget.FrameLayout",
+                      "text": "",
+                      "identifier": "com.android.systemui:id/status_bar_start_side_content",
+                      "rect": {
+                        "x": 48,
+                        "y": 0,
+                        "width": 130,
+                        "height": 156
+                      },
+                      "children": [
+                        {
+                          "type": "android.widget.LinearLayout",
+                          "text": "",
+                          "identifier": "com.android.systemui:id/status_bar_start_side_except_heads_up",
+                          "rect": {
+                            "x": 48,
+                            "y": 0,
+                            "width": 130,
+                            "height": 156
+                          },
+                          "children": [
+                            {
+                              "type": "android.widget.TextView",
+                              "label": "4:02 PM",
+                              "text": "4:02",
+                              "identifier": "com.android.systemui:id/clock",
+                              "rect": {
+                                "x": 48,
+                                "y": 45,
+                                "width": 130,
+                                "height": 66
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "android.view.View",
+                  "text": "",
+                  "identifier": "com.android.systemui:id/cutout_space_view",
+                  "rect": {
+                    "x": 573,
+                    "y": 0,
+                    "width": 109,
+                    "height": 156
+                  }
+                },
+                {
+                  "type": "android.widget.FrameLayout",
+                  "text": "",
+                  "identifier": "com.android.systemui:id/status_bar_end_side_container",
+                  "rect": {
+                    "x": 682,
+                    "y": 0,
+                    "width": 526,
+                    "height": 156
+                  },
+                  "children": [
+                    {
+                      "type": "android.widget.LinearLayout",
+                      "text": "",
+                      "identifier": "com.android.systemui:id/status_bar_end_side_content",
+                      "rect": {
+                        "x": 963,
+                        "y": 0,
+                        "width": 245,
+                        "height": 156
+                      },
+                      "children": [
+                        {
+                          "type": "android.widget.LinearLayout",
+                          "text": "",
+                          "identifier": "com.android.systemui:id/system_icons",
+                          "rect": {
+                            "x": 963,
+                            "y": 45,
+                            "width": 245,
+                            "height": 66
+                          },
+                          "children": [
+                            {
+                              "type": "android.widget.LinearLayout",
+                              "text": "",
+                              "identifier": "com.android.systemui:id/statusIcons",
+                              "rect": {
+                                "x": 972,
+                                "y": 45,
+                                "width": 144,
+                                "height": 66
+                              },
+                              "children": [
+                                {
+                                  "type": "android.widget.FrameLayout",
+                                  "label": "T-Mobile, one bar.",
+                                  "text": "",
+                                  "identifier": "com.android.systemui:id/mobile_combo",
+                                  "rect": {
+                                    "x": 972,
+                                    "y": 45,
+                                    "width": 69,
+                                    "height": 66
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/mobile_group",
+                                      "rect": {
+                                        "x": 981,
+                                        "y": 45,
+                                        "width": 51,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.ImageView",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/mobile_signal",
+                                          "rect": {
+                                            "x": 981,
+                                            "y": 60,
+                                            "width": 51,
+                                            "height": 36
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "android.widget.FrameLayout",
+                                  "text": "",
+                                  "identifier": "com.android.systemui:id/wifi_combo",
+                                  "rect": {
+                                    "x": 1041,
+                                    "y": 45,
+                                    "width": 66,
+                                    "height": 66
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "android.widget.LinearLayout",
+                                      "text": "",
+                                      "identifier": "com.android.systemui:id/wifi_group",
+                                      "rect": {
+                                        "x": 1050,
+                                        "y": 45,
+                                        "width": 48,
+                                        "height": 66
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "android.widget.FrameLayout",
+                                          "text": "",
+                                          "identifier": "com.android.systemui:id/wifi_combo",
+                                          "rect": {
+                                            "x": 1050,
+                                            "y": 60,
+                                            "width": 48,
+                                            "height": 36
+                                          },
+                                          "children": [
+                                            {
+                                              "type": "android.widget.ImageView",
+                                              "label": "Wifi signal full.",
+                                              "text": "",
+                                              "identifier": "com.android.systemui:id/wifi_signal",
+                                              "rect": {
+                                                "x": 1050,
+                                                "y": 60,
+                                                "width": 48,
+                                                "height": 36
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "android.view.View",
+                              "text": "",
+                              "identifier": "com.android.systemui:id/battery",
+                              "rect": {
+                                "x": 1116,
+                                "y": 58,
+                                "width": 80,
+                                "height": 39
+                              },
+                              "children": [
+                                {
+                                  "type": "android.view.View",
+                                  "label": "Battery 100 percent.",
+                                  "text": "",
+                                  "rect": {
+                                    "x": 1116,
+                                    "y": 58,
+                                    "width": 72,
+                                    "height": 39
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "type": "android.widget.FrameLayout",
+    "identifier": "com.google.android.contacts:id/action_bar_root",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1280,
+      "height": 2856
+    },
+    "children": [
+      {
+        "type": "android.widget.FrameLayout",
+        "identifier": "android:id/content",
+        "isVisible": true,
+        "isEnabled": true,
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 2856
+        },
+        "children": [
+          {
+            "type": "android.widget.TextView",
+            "text": "Picture & calling card",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 217,
+              "y": 516,
+              "width": 738,
+              "height": 72
+            },
+            "children": [],
+            "raw": {
+              "type": "android.widget.TextView",
+              "text": "Picture & calling card",
+              "rect": {
+                "x": 217,
+                "y": 516,
+                "width": 738,
+                "height": 72
+              }
+            }
+          },
+          {
+            "type": "android.view.View",
+            "label": "More options",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 991,
+              "y": 510,
+              "width": 72,
+              "height": 72
+            },
+            "children": [],
+            "raw": {
+              "type": "android.view.View",
+              "label": "More options",
+              "text": "",
+              "rect": {
+                "x": 991,
+                "y": 510,
+                "width": 72,
+                "height": 72
+              }
+            }
+          },
+          {
+            "type": "android.view.View",
+            "label": "Add contact photo",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 261,
+              "y": 761,
+              "width": 378,
+              "height": 378
+            },
+            "children": [],
+            "raw": {
+              "type": "android.view.View",
+              "label": "Add contact photo",
+              "text": "",
+              "rect": {
+                "x": 261,
+                "y": 761,
+                "width": 378,
+                "height": 378
+              }
+            }
+          },
+          {
+            "type": "android.view.View",
+            "label": "Add calling card",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 687,
+              "y": 624,
+              "width": 333,
+              "height": 651
+            },
+            "children": [],
+            "raw": {
+              "type": "android.view.View",
+              "label": "Add calling card",
+              "text": "",
+              "rect": {
+                "x": 687,
+                "y": 624,
+                "width": 333,
+                "height": 651
+              }
+            }
+          },
+          {
+            "type": "android.widget.EditText",
+            "text": "First name",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 144,
+              "y": 1460,
+              "width": 992,
+              "height": 175
+            },
+            "children": [],
+            "raw": {
+              "type": "android.widget.EditText",
+              "text": "First name",
+              "rect": {
+                "x": 144,
+                "y": 1460,
+                "width": 992,
+                "height": 175
+              }
+            }
+          },
+          {
+            "type": "android.widget.EditText",
+            "text": "Last name",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 144,
+              "y": 1664,
+              "width": 992,
+              "height": 175
+            },
+            "children": [],
+            "raw": {
+              "type": "android.widget.EditText",
+              "text": "Last name",
+              "rect": {
+                "x": 144,
+                "y": 1664,
+                "width": 992,
+                "height": 175
+              }
+            }
+          },
+          {
+            "type": "android.widget.TextView",
+            "text": "Company",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 192,
+              "y": 1959,
+              "width": 207,
+              "height": 72
+            },
+            "children": [],
+            "raw": {
+              "type": "android.widget.TextView",
+              "text": "Company",
+              "rect": {
+                "x": 192,
+                "y": 1959,
+                "width": 207,
+                "height": 72
+              }
+            }
+          },
+          {
+            "type": "android.widget.EditText",
+            "text": "+1",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 144,
+              "y": 2127,
+              "width": 992,
+              "height": 192
+            },
+            "children": [
+              {
+                "type": "android.widget.TextView",
+                "text": "🇺🇸",
+                "isVisible": true,
+                "isEnabled": true,
+                "bounds": {
+                  "x": 174,
+                  "y": 2199,
+                  "width": 60,
+                  "height": 72
+                },
+                "children": [],
+                "raw": {
+                  "type": "android.widget.TextView",
+                  "text": "🇺🇸",
+                  "rect": {
+                    "x": 174,
+                    "y": 2199,
+                    "width": 60,
+                    "height": 72
+                  }
+                }
+              },
+              {
+                "type": "android.widget.TextView",
+                "text": "Phone (Mobile)",
+                "isVisible": true,
+                "isEnabled": true,
+                "bounds": {
+                  "x": 192,
+                  "y": 2127,
+                  "width": 253,
+                  "height": 48
+                },
+                "children": [],
+                "raw": {
+                  "type": "android.widget.TextView",
+                  "text": "Phone (Mobile)",
+                  "rect": {
+                    "x": 192,
+                    "y": 2127,
+                    "width": 253,
+                    "height": 48
+                  }
+                }
+              }
+            ],
+            "raw": {
+              "type": "android.widget.EditText",
+              "text": "+1",
+              "rect": {
+                "x": 144,
+                "y": 2127,
+                "width": 992,
+                "height": 192
+              },
+              "children": [
+                {
+                  "type": "android.widget.TextView",
+                  "text": "🇺🇸",
+                  "rect": {
+                    "x": 174,
+                    "y": 2199,
+                    "width": 60,
+                    "height": 72
+                  }
+                },
+                {
+                  "type": "android.widget.TextView",
+                  "text": "Phone (Mobile)",
+                  "rect": {
+                    "x": 192,
+                    "y": 2127,
+                    "width": 253,
+                    "height": 48
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "android.view.View",
+            "label": "Delete",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 1172,
+              "y": 2205,
+              "width": 72,
+              "height": 72
+            },
+            "children": [],
+            "raw": {
+              "type": "android.view.View",
+              "label": "Delete",
+              "text": "",
+              "rect": {
+                "x": 1172,
+                "y": 2205,
+                "width": 72,
+                "height": 72
+              }
+            }
+          },
+          {
+            "type": "android.widget.TextView",
+            "text": "Add phone",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 150,
+              "y": 2361,
+              "width": 216,
+              "height": 60
+            },
+            "children": [],
+            "raw": {
+              "type": "android.widget.TextView",
+              "text": "Add phone",
+              "rect": {
+                "x": 150,
+                "y": 2361,
+                "width": 216,
+                "height": 60
+              }
+            }
+          },
+          {
+            "type": "android.widget.TextView",
+            "text": "Notes",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 192,
+              "y": 2583,
+              "width": 127,
+              "height": 72
+            },
+            "children": [],
+            "raw": {
+              "type": "android.widget.TextView",
+              "text": "Notes",
+              "rect": {
+                "x": 192,
+                "y": 2583,
+                "width": 127,
+                "height": 72
+              }
+            }
+          },
+          {
+            "type": "android.view.View",
+            "label": "Cancel",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 48,
+              "y": 216,
+              "width": 72,
+              "height": 72
+            },
+            "children": [],
+            "raw": {
+              "type": "android.view.View",
+              "label": "Cancel",
+              "text": "",
+              "rect": {
+                "x": 48,
+                "y": 216,
+                "width": 72,
+                "height": 72
+              }
+            }
+          },
+          {
+            "type": "android.widget.TextView",
+            "text": "Create contact",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 168,
+              "y": 210,
+              "width": 447,
+              "height": 84
+            },
+            "children": [],
+            "raw": {
+              "type": "android.widget.TextView",
+              "text": "Create contact",
+              "rect": {
+                "x": 168,
+                "y": 210,
+                "width": 447,
+                "height": 84
+              }
+            }
+          },
+          {
+            "type": "android.view.View",
+            "label": "Add to Favorites",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 776,
+              "y": 216,
+              "width": 72,
+              "height": 72
+            },
+            "children": [],
+            "raw": {
+              "type": "android.view.View",
+              "label": "Add to Favorites",
+              "text": "",
+              "rect": {
+                "x": 776,
+                "y": 216,
+                "width": 72,
+                "height": 72
+              }
+            }
+          },
+          {
+            "type": "android.widget.TextView",
+            "text": "Save",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 956,
+              "y": 222,
+              "width": 96,
+              "height": 60
+            },
+            "children": [],
+            "raw": {
+              "type": "android.widget.TextView",
+              "text": "Save",
+              "rect": {
+                "x": 956,
+                "y": 222,
+                "width": 96,
+                "height": 60
+              }
+            }
+          },
+          {
+            "type": "android.view.View",
+            "label": "More options",
+            "isVisible": true,
+            "isEnabled": true,
+            "bounds": {
+              "x": 1160,
+              "y": 216,
+              "width": 72,
+              "height": 72
+            },
+            "children": [],
+            "raw": {
+              "type": "android.view.View",
+              "label": "More options",
+              "text": "",
+              "rect": {
+                "x": 1160,
+                "y": 216,
+                "width": 72,
+                "height": 72
+              }
+            }
+          }
+        ],
+        "raw": {
+          "type": "android.widget.FrameLayout",
+          "text": "",
+          "identifier": "android:id/content",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 2856
+          },
+          "children": [
+            {
+              "type": "android.widget.TextView",
+              "text": "Picture & calling card",
+              "rect": {
+                "x": 217,
+                "y": 516,
+                "width": 738,
+                "height": 72
+              }
+            },
+            {
+              "type": "android.view.View",
+              "label": "More options",
+              "text": "",
+              "rect": {
+                "x": 991,
+                "y": 510,
+                "width": 72,
+                "height": 72
+              }
+            },
+            {
+              "type": "android.view.View",
+              "label": "Add contact photo",
+              "text": "",
+              "rect": {
+                "x": 261,
+                "y": 761,
+                "width": 378,
+                "height": 378
+              }
+            },
+            {
+              "type": "android.view.View",
+              "label": "Add calling card",
+              "text": "",
+              "rect": {
+                "x": 687,
+                "y": 624,
+                "width": 333,
+                "height": 651
+              }
+            },
+            {
+              "type": "android.widget.EditText",
+              "text": "First name",
+              "rect": {
+                "x": 144,
+                "y": 1460,
+                "width": 992,
+                "height": 175
+              }
+            },
+            {
+              "type": "android.widget.EditText",
+              "text": "Last name",
+              "rect": {
+                "x": 144,
+                "y": 1664,
+                "width": 992,
+                "height": 175
+              }
+            },
+            {
+              "type": "android.widget.TextView",
+              "text": "Company",
+              "rect": {
+                "x": 192,
+                "y": 1959,
+                "width": 207,
+                "height": 72
+              }
+            },
+            {
+              "type": "android.widget.EditText",
+              "text": "+1",
+              "rect": {
+                "x": 144,
+                "y": 2127,
+                "width": 992,
+                "height": 192
+              },
+              "children": [
+                {
+                  "type": "android.widget.TextView",
+                  "text": "🇺🇸",
+                  "rect": {
+                    "x": 174,
+                    "y": 2199,
+                    "width": 60,
+                    "height": 72
+                  }
+                },
+                {
+                  "type": "android.widget.TextView",
+                  "text": "Phone (Mobile)",
+                  "rect": {
+                    "x": 192,
+                    "y": 2127,
+                    "width": 253,
+                    "height": 48
+                  }
+                }
+              ]
+            },
+            {
+              "type": "android.view.View",
+              "label": "Delete",
+              "text": "",
+              "rect": {
+                "x": 1172,
+                "y": 2205,
+                "width": 72,
+                "height": 72
+              }
+            },
+            {
+              "type": "android.widget.TextView",
+              "text": "Add phone",
+              "rect": {
+                "x": 150,
+                "y": 2361,
+                "width": 216,
+                "height": 60
+              }
+            },
+            {
+              "type": "android.widget.TextView",
+              "text": "Notes",
+              "rect": {
+                "x": 192,
+                "y": 2583,
+                "width": 127,
+                "height": 72
+              }
+            },
+            {
+              "type": "android.view.View",
+              "label": "Cancel",
+              "text": "",
+              "rect": {
+                "x": 48,
+                "y": 216,
+                "width": 72,
+                "height": 72
+              }
+            },
+            {
+              "type": "android.widget.TextView",
+              "text": "Create contact",
+              "rect": {
+                "x": 168,
+                "y": 210,
+                "width": 447,
+                "height": 84
+              }
+            },
+            {
+              "type": "android.view.View",
+              "label": "Add to Favorites",
+              "text": "",
+              "rect": {
+                "x": 776,
+                "y": 216,
+                "width": 72,
+                "height": 72
+              }
+            },
+            {
+              "type": "android.widget.TextView",
+              "text": "Save",
+              "rect": {
+                "x": 956,
+                "y": 222,
+                "width": 96,
+                "height": 60
+              }
+            },
+            {
+              "type": "android.view.View",
+              "label": "More options",
+              "text": "",
+              "rect": {
+                "x": 1160,
+                "y": 216,
+                "width": 72,
+                "height": 72
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "raw": {
+      "type": "android.widget.FrameLayout",
+      "text": "",
+      "identifier": "com.google.android.contacts:id/action_bar_root",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 2856
+      },
+      "children": [
+        {
+          "type": "android.widget.FrameLayout",
+          "text": "",
+          "identifier": "android:id/content",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 2856
+          },
+          "children": [
+            {
+              "type": "android.widget.TextView",
+              "text": "Picture & calling card",
+              "rect": {
+                "x": 217,
+                "y": 516,
+                "width": 738,
+                "height": 72
+              }
+            },
+            {
+              "type": "android.view.View",
+              "label": "More options",
+              "text": "",
+              "rect": {
+                "x": 991,
+                "y": 510,
+                "width": 72,
+                "height": 72
+              }
+            },
+            {
+              "type": "android.view.View",
+              "label": "Add contact photo",
+              "text": "",
+              "rect": {
+                "x": 261,
+                "y": 761,
+                "width": 378,
+                "height": 378
+              }
+            },
+            {
+              "type": "android.view.View",
+              "label": "Add calling card",
+              "text": "",
+              "rect": {
+                "x": 687,
+                "y": 624,
+                "width": 333,
+                "height": 651
+              }
+            },
+            {
+              "type": "android.widget.EditText",
+              "text": "First name",
+              "rect": {
+                "x": 144,
+                "y": 1460,
+                "width": 992,
+                "height": 175
+              }
+            },
+            {
+              "type": "android.widget.EditText",
+              "text": "Last name",
+              "rect": {
+                "x": 144,
+                "y": 1664,
+                "width": 992,
+                "height": 175
+              }
+            },
+            {
+              "type": "android.widget.TextView",
+              "text": "Company",
+              "rect": {
+                "x": 192,
+                "y": 1959,
+                "width": 207,
+                "height": 72
+              }
+            },
+            {
+              "type": "android.widget.EditText",
+              "text": "+1",
+              "rect": {
+                "x": 144,
+                "y": 2127,
+                "width": 992,
+                "height": 192
+              },
+              "children": [
+                {
+                  "type": "android.widget.TextView",
+                  "text": "🇺🇸",
+                  "rect": {
+                    "x": 174,
+                    "y": 2199,
+                    "width": 60,
+                    "height": 72
+                  }
+                },
+                {
+                  "type": "android.widget.TextView",
+                  "text": "Phone (Mobile)",
+                  "rect": {
+                    "x": 192,
+                    "y": 2127,
+                    "width": 253,
+                    "height": 48
+                  }
+                }
+              ]
+            },
+            {
+              "type": "android.view.View",
+              "label": "Delete",
+              "text": "",
+              "rect": {
+                "x": 1172,
+                "y": 2205,
+                "width": 72,
+                "height": 72
+              }
+            },
+            {
+              "type": "android.widget.TextView",
+              "text": "Add phone",
+              "rect": {
+                "x": 150,
+                "y": 2361,
+                "width": 216,
+                "height": 60
+              }
+            },
+            {
+              "type": "android.widget.TextView",
+              "text": "Notes",
+              "rect": {
+                "x": 192,
+                "y": 2583,
+                "width": 127,
+                "height": 72
+              }
+            },
+            {
+              "type": "android.view.View",
+              "label": "Cancel",
+              "text": "",
+              "rect": {
+                "x": 48,
+                "y": 216,
+                "width": 72,
+                "height": 72
+              }
+            },
+            {
+              "type": "android.widget.TextView",
+              "text": "Create contact",
+              "rect": {
+                "x": 168,
+                "y": 210,
+                "width": 447,
+                "height": 84
+              }
+            },
+            {
+              "type": "android.view.View",
+              "label": "Add to Favorites",
+              "text": "",
+              "rect": {
+                "x": 776,
+                "y": 216,
+                "width": 72,
+                "height": 72
+              }
+            },
+            {
+              "type": "android.widget.TextView",
+              "text": "Save",
+              "rect": {
+                "x": 956,
+                "y": 222,
+                "width": 96,
+                "height": 60
+              }
+            },
+            {
+              "type": "android.view.View",
+              "label": "More options",
+              "text": "",
+              "rect": {
+                "x": 1160,
+                "y": 216,
+                "width": 72,
+                "height": 72
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

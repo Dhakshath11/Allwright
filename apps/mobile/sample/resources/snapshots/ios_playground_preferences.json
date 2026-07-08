@@ -1,0 +1,380 @@
+[
+  {
+    "type": "Button",
+    "label": "Back",
+    "identifier": "BackButton",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 0,
+      "y": 56,
+      "width": 68,
+      "height": 44
+    },
+    "children": [],
+    "raw": {
+      "type": "Button",
+      "label": "Back",
+      "name": "BackButton",
+      "identifier": "BackButton",
+      "rect": {
+        "x": 0,
+        "y": 56,
+        "width": 68,
+        "height": 44
+      }
+    }
+  },
+  {
+    "type": "StaticText",
+    "label": "Preferences",
+    "identifier": "Preferences",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 153,
+      "y": 64,
+      "width": 96,
+      "height": 26
+    },
+    "children": [],
+    "raw": {
+      "type": "StaticText",
+      "label": "Preferences",
+      "name": "Preferences",
+      "rect": {
+        "x": 153,
+        "y": 64,
+        "width": 96,
+        "height": 26
+      }
+    }
+  },
+  {
+    "type": "Image",
+    "identifier": "chevron.forward",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 239,
+      "y": 277,
+      "width": 7,
+      "height": 12
+    },
+    "children": [],
+    "raw": {
+      "type": "Image",
+      "name": "chevron.forward",
+      "identifier": "chevron.forward",
+      "rect": {
+        "x": 239,
+        "y": 277,
+        "width": 7,
+        "height": 12
+      }
+    }
+  },
+  {
+    "type": "Image",
+    "identifier": "chevron.forward",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 239,
+      "y": 321,
+      "width": 7,
+      "height": 12
+    },
+    "children": [],
+    "raw": {
+      "type": "Image",
+      "name": "chevron.forward",
+      "identifier": "chevron.forward",
+      "rect": {
+        "x": 239,
+        "y": 321,
+        "width": 7,
+        "height": 12
+      }
+    }
+  },
+  {
+    "type": "Image",
+    "identifier": "chevron.forward",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 239,
+      "y": 365,
+      "width": 7,
+      "height": 12
+    },
+    "children": [],
+    "raw": {
+      "type": "Image",
+      "name": "chevron.forward",
+      "identifier": "chevron.forward",
+      "rect": {
+        "x": 239,
+        "y": 365,
+        "width": 7,
+        "height": 12
+      }
+    }
+  },
+  {
+    "type": "Image",
+    "identifier": "chevron.forward",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 239,
+      "y": 409,
+      "width": 7,
+      "height": 12
+    },
+    "children": [],
+    "raw": {
+      "type": "Image",
+      "name": "chevron.forward",
+      "identifier": "chevron.forward",
+      "rect": {
+        "x": 239,
+        "y": 409,
+        "width": 7,
+        "height": 12
+      }
+    }
+  },
+  {
+    "type": "Image",
+    "identifier": "chevron.forward",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 239,
+      "y": 453,
+      "width": 7,
+      "height": 12
+    },
+    "children": [],
+    "raw": {
+      "type": "Image",
+      "name": "chevron.forward",
+      "identifier": "chevron.forward",
+      "rect": {
+        "x": 239,
+        "y": 453,
+        "width": 7,
+        "height": 12
+      }
+    }
+  },
+  {
+    "type": "TextField",
+    "identifier": "username_field",
+    "placeholder": "Username",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 32,
+      "y": 144,
+      "width": 338,
+      "height": 26
+    },
+    "children": [],
+    "raw": {
+      "type": "TextField",
+      "name": "username_field",
+      "placeholder": "Username",
+      "identifier": "username_field",
+      "rect": {
+        "x": 32,
+        "y": 144,
+        "width": 338,
+        "height": 26
+      }
+    }
+  },
+  {
+    "type": "SecureTextField",
+    "identifier": "password_field",
+    "placeholder": "Password",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 32,
+      "y": 188,
+      "width": 303,
+      "height": 25
+    },
+    "children": [],
+    "raw": {
+      "type": "SecureTextField",
+      "name": "password_field",
+      "placeholder": "Password",
+      "identifier": "password_field",
+      "rect": {
+        "x": 32,
+        "y": 188,
+        "width": 303,
+        "height": 25
+      }
+    }
+  },
+  {
+    "type": "Button",
+    "label": "Show",
+    "identifier": "reveal_button",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 345,
+      "y": 194,
+      "width": 23,
+      "height": 14
+    },
+    "children": [],
+    "raw": {
+      "type": "Button",
+      "label": "Show",
+      "name": "reveal_button",
+      "identifier": "reveal_button",
+      "rect": {
+        "x": 345,
+        "y": 194,
+        "width": 23,
+        "height": 14
+      }
+    }
+  },
+  {
+    "type": "Button",
+    "label": "Save",
+    "identifier": "save_button",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 69,
+      "y": 268,
+      "width": 37,
+      "height": 24
+    },
+    "children": [],
+    "raw": {
+      "type": "Button",
+      "label": "Save",
+      "name": "save_button",
+      "identifier": "save_button",
+      "rect": {
+        "x": 69,
+        "y": 268,
+        "width": 37,
+        "height": 24
+      }
+    }
+  },
+  {
+    "type": "Button",
+    "label": "Load",
+    "identifier": "load_button",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 182,
+      "y": 268,
+      "width": 37,
+      "height": 24
+    },
+    "children": [],
+    "raw": {
+      "type": "Button",
+      "label": "Load",
+      "name": "load_button",
+      "identifier": "load_button",
+      "rect": {
+        "x": 182,
+        "y": 268,
+        "width": 37,
+        "height": 24
+      }
+    }
+  },
+  {
+    "type": "Button",
+    "label": "Delete",
+    "identifier": "delete_button",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 289,
+      "y": 268,
+      "width": 49,
+      "height": 24
+    },
+    "children": [],
+    "raw": {
+      "type": "Button",
+      "label": "Delete",
+      "name": "delete_button",
+      "identifier": "delete_button",
+      "rect": {
+        "x": 289,
+        "y": 268,
+        "width": 49,
+        "height": 24
+      }
+    }
+  },
+  {
+    "type": "StaticText",
+    "label": "3:40 PM",
+    "identifier": "3:40 PM",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 55,
+      "y": 14,
+      "width": 38,
+      "height": 20
+    },
+    "children": [],
+    "raw": {
+      "type": "StaticText",
+      "label": "3:40 PM",
+      "name": "3:40 PM",
+      "rect": {
+        "x": 55,
+        "y": 14,
+        "width": 38,
+        "height": 20
+      }
+    }
+  },
+  {
+    "type": "Button",
+    "label": "Return to Contacts",
+    "identifier": "breadcrumb",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 11,
+      "y": 33,
+      "width": 60,
+      "height": 13
+    },
+    "children": [],
+    "raw": {
+      "type": "Button",
+      "label": "Return to Contacts",
+      "name": "breadcrumb",
+      "identifier": "breadcrumb",
+      "rect": {
+        "x": 11,
+        "y": 33,
+        "width": 60,
+        "height": 13
+      }
+    }
+  }
+]

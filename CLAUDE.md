@@ -71,7 +71,7 @@ Aspirational — do not implement unless explicitly requested:
 
 ## Testing the Framework Itself
 
-Utility methods under `core/utils/` (and anywhere else in `core/`) **must have unit tests**. Allwright is itself a testing framework — shipping untested helpers to manual QAs would undermine the product. Pick a runner (Vitest or Jest) when the first utility lands and stick with it. End-to-end suites under `apps/` exercise real targets and are not a substitute for unit tests on the helpers they depend on.
+Utility methods under `core/utils/` (and anywhere else in `core/`) **must have unit tests**. Allwright is itself a testing framework — shipping untested helpers to manual QAs would undermine the product. Runner is **Vitest** (`vitest.config.ts` scoped to `core/**/*.test.ts`, `npm run test:unit`). End-to-end suites under `apps/` exercise real targets and are not a substitute for unit tests on the helpers they depend on.
 
 ## Working in This Repo Today
 
@@ -195,6 +195,7 @@ The `--config <path>` flag works from any cwd as of mobilewright 0.0.44 (earlier
 |---|---|---|
 | **`allwright-reviewer`** (`.claude/skills/allwright-reviewer/SKILL.md`) | "review my PR", "review my branch", "review my changes", "pre-review", "check before commit", "review this file", "code review" | Pre-PR review tuned to Allwright (TypeScript + mobilewright + Playwright + REST). Applies a severity-tagged checklist (`[Critical]` / `[Major]` / `[Minor]` / `[Nit]`) with every comment carrying a concrete `Fix:` recommendation. Specifically catches: screen-object hygiene (locator co-location, typed `readonly` props, named-object params, full-flow encapsulation), locator stability, **prompt-friendliness of public APIs** (the strategic differentiator), cross-surface uniformity (no surface types leaking into `core/`), known mobilewright traps (the `--config` flag bug, first-run timeout), and `core/utils/` unit-test gaps. Outputs a structured report with blocking-issue count and APPROVE / REQUEST_CHANGES verdict. |
 | **`screen-builder`** (`.claude/skills/screen-builder/SKILL.md`) | "build a screen", "build the contacts screen", "create a screen for X", "extract locators for X screen", "scaffold X screen", "make the POM for X" | **Manual mode — token-light by design.** Recipe + template + conventions reference for building Allwright screen object classes from a captured mobilewright view tree. The user does the extraction work themselves; Claude is consulted only on demand for ambiguous locator decisions or a final review (via `allwright-reviewer`). Skill provides: the dump-and-extract workflow, a selector priority table (testId > label > role+name > placeholder > text), the full screen-class template, and non-negotiable conventions (facade via `MobileUtils`, typed `readonly` locators, named-object action params, full-flow encapsulation, one screen state per class). |
+| **`mobilewright`** (`.claude/skills/mobilewright/SKILL.md`) | **`/mobilewright <bundle-id> [ios\|android] "intent"` only** — never auto-trigger | **Pure agentic orchestrator.** Director agent (phase 0) scans existing assets, optionally uses graphify, maps intent to a mode (write\|execute\|debug\|fix\|maintain\|refactor), assesses token cost, asks ONE question block, then writes a plan. Orchestrator auto-proceeds through planned phases without human confirmation — one autonomous retry on failure, escalates only if recovery also fails. State YAML at `.claude/tasks/mobilewright_state.yaml` survives compaction and session breaks. |
 
 ## Project Slash Commands (`.claude/commands/`)
 
@@ -204,6 +205,17 @@ Project-specific commands live in `.claude/commands/`. Files are **grouped by to
 |---|---|
 | `/xcode:setup` | Xcode version → list simulators → boot iPhone 17 Pro Max → `open -a Simulator` |
 | `/mobile:test` | `npm run test:mobile -- $ARGUMENTS` |
+| `/mobile:snapshot` | `npm run test:mobile:snapshots -- $ARGUMENTS` (pass `--project=ios\|android`) |
+| `/device:list` | `mobilewright devices` — all simulators/emulators and their state |
+| `/device:boot` | `xcrun simctl boot "$ARGUMENTS" && open -a Simulator` |
+| `/debug:doctor` | `mobilewright doctor $ARGUMENTS` — env health check (`--category ios\|android\|system`) |
+| `/debug:dump` | `mobilecli dump ui` on booted device → `/tmp/mw_uidump.json` |
+| `/debug:screenshot` | `mobilecli screenshot` on booted device → `/tmp/mw_screen.png` |
+| `/debug:agent` | Force reinstall WDA agent on booted device (`mobilewright install --force`) |
+| `/debug:webview` | `mobilecli webview list` — embedded webviews on booted device |
+| `/app:list` | `mobilecli apps list` on booted device |
+| `/app:launch` | `mobilecli apps launch --device <booted> $ARGUMENTS` (pass bundle ID) |
+| `/app:terminate` | `mobilecli apps terminate --device <booted> $ARGUMENTS` (pass bundle ID) |
 
 Layout:
 
@@ -211,8 +223,22 @@ Layout:
 .claude/commands/
 ├── xcode/
 │   └── setup.md
-└── mobile/
-    └── test.md
+├── mobile/
+│   ├── test.md
+│   └── snapshot.md
+├── device/
+│   ├── list.md
+│   └── boot.md
+├── debug/
+│   ├── doctor.md
+│   ├── dump.md
+│   ├── screenshot.md
+│   ├── agent.md
+│   └── webview.md
+└── app/
+    ├── list.md
+    ├── launch.md
+    └── terminate.md
 ```
 
 **File-per-group convention:** for a group like `xcode/`, prefer **one consolidated file** (`setup.md`) that runs a sequence of related shell actions, rather than one file per action. Add per-action files only when the action stands alone and is invoked independently.

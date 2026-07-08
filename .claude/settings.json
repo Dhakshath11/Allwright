@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xcrun simctl list *)",
+      "Bash(xcrun simctl boot *)",
+      "Bash(xcrun simctl terminate *)",
+      "Bash(xcrun simctl launch *)",
+      "Bash(xcrun simctl listapps *)",
+      "Bash(open -a Simulator)",
+      "Bash(npx mobilewright doctor *)",
+      "Bash(npx mobilewright devices)",
+      "Bash(npx mobilewright install *)",
+      "Bash(npx mobilecli dump *)",
+      "Bash(npx mobilecli screenshot *)",
+      "Bash(npx mobilecli apps list *)",
+      "Bash(npx mobilecli apps terminate *)",
+      "Bash(npx mobilecli apps launch *)",
+      "Bash(npx mobilecli apps install *)",
+      "Bash(npx mobilecli webview *)",
+      "Bash(npm run test:mobile -- *)",
+      "Bash(npm run test:mobile:snapshots -- *)",
+      "Bash(adb devices)",
+      "Bash(adb shell *)",
+      "Bash(tee /tmp/mw_*)",
+      "Write(.claude/tasks/mobilewright_state.yaml)"
+    ]
+  }
+}

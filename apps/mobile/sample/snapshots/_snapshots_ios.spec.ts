@@ -40,3 +40,4 @@ test('dump: edit contact form', async ({ screen }) => {
   await utils.tap(utils.getByText('Edit'));
   await dump(screen, 'ios_edit_contact_form.json');
 });
+

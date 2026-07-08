@@ -1,0 +1,75 @@
+version: 1
+bundleId: "com.mobilenext.playground"
+platform: ios
+
+director_plan:
+  mode: write
+  intent: "Uninstall and reinstall app to reset permissions, then: launch → Dashboard → tap Permissions And Alerts → assert 'Not Determined' status → tap Request for Permission → screenshot system popup → tap Grant → verify 'Granted' status"
+  phases_to_run: [1, 2, 3, 4, 5, 6, 7]
+  phases_to_skip: []
+  skip_reasons: {}
+  token_estimate: high
+  graphify_used: false
+  existing_assets:
+    snapshots:
+      - ios_playground_main.json
+      - ios_playground_preferences.json
+      - ios_playground_continuous_animation.json
+    screens:
+      - playground-main.screen.ts
+      - playground-preferences.screen.ts
+      - playground-continuous-animation.screen.ts
+    specs:
+      - mobile_playground_ios.spec.ts
+  acceptance_criteria:
+    - "After launch (fresh install), Permissions And Alerts screen shows status 'Not Determined'"
+    - "Tapping 'Request for Permission' triggers an iOS system alert popup"
+    - "After tapping Grant, the screen shows status 'Granted'"
+    - "Screenshot of the system popup is attached to the test report"
+  lessons_applied: [6, 8, 9, 14, 17, 21, 22, 23]
+  notes:
+    - "Use const PLAYGROUND = 'com.mobilenext.playground' — do not touch mobilewright.config.ts"
+    - "System alert: try utils.getByText('Grant') — WDA injects iOS alert elements into accessibility tree"
+    - "Uninstall/reinstall must happen in beforeAll of the permissions describe block to reset OS permission state"
+    - "3 snapshots needed: ios_playground_permissions_initial.json (Not Determined state), ios_playground_permissions_popup.json (system alert visible), ios_playground_permissions_granted.json (post-grant state)"
+    - "playground-main.screen.ts already has tapPermissionsAndAlerts() — reuse it, do not duplicate"
+
+current_phase: 5
+
+phase_results:
+  director:
+    status: complete
+    device: ""
+  preflight:
+    status: done
+    device: "iPhone 17 Pro"
+  capture:
+    status: done
+    snapshots_captured:
+      - ios_playground_permissions_initial.json
+      - ios_playground_permissions_popup.json
+      - ios_playground_permissions_granted.json
+  locator_analysis:
+    status: done
+    locator_map: ".claude/tasks/mobilewright_locator_map.json"
+  screen_builder:
+    status: done
+    pom_files:
+      - "apps/mobile/sample/screens/ios/playground-permissions.screen.ts"
+      - "apps/mobile/sample/screens/ios/playground-permissions-alert.screen.ts"
+  spec_builder:
+    status: pending
+    spec_file: ""
+  reviewer:
+    status: pending
+    verdict: ""
+  debug:
+    status: pending
+    root_cause: ""
+    fix_applied: ""
+  cleanup:
+    status: pending
+
+errors: []
+created_at: "2026-07-08T00:00:00Z"
+updated_at: "2026-06-28T12:00:00Z"

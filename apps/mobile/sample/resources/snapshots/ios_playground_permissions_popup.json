@@ -1,0 +1,177 @@
+[
+  {
+    "type": "Image",
+    "identifier": "/Users/dhakshath/Library/Developer/CoreSimulator/Devices/22674CAC-C555-472A-864D-086FF9850725/data/tmp/com.apple.tccd/kTCCServiceCamera@3x.png",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 67,
+      "y": 322,
+      "width": 69,
+      "height": 69
+    },
+    "children": [],
+    "raw": {
+      "type": "Image",
+      "name": "/Users/dhakshath/Library/Developer/CoreSimulator/Devices/22674CAC-C555-472A-864D-086FF9850725/data/tmp/com.apple.tccd/kTCCServiceCamera@3x.png",
+      "identifier": "/Users/dhakshath/Library/Developer/CoreSimulator/Devices/22674CAC-C555-472A-864D-086FF9850725/data/tmp/com.apple.tccd/kTCCServiceCamera@3x.png",
+      "rect": {
+        "x": 67,
+        "y": 322,
+        "width": 69,
+        "height": 69
+      }
+    }
+  },
+  {
+    "type": "StaticText",
+    "label": "“Playground” would like to access the Camera.",
+    "identifier": "“Playground” would like to access the Camera.",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 71,
+      "y": 415,
+      "width": 260,
+      "height": 50
+    },
+    "children": [],
+    "raw": {
+      "type": "StaticText",
+      "label": "“Playground” would like to access the Camera.",
+      "name": "“Playground” would like to access the Camera.",
+      "rect": {
+        "x": 71,
+        "y": 415,
+        "width": 260,
+        "height": 50
+      }
+    }
+  },
+  {
+    "type": "StaticText",
+    "label": "Used to demonstrate permission request dialogs.",
+    "identifier": "Used to demonstrate permission request dialogs.",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 71,
+      "y": 473,
+      "width": 260,
+      "height": 43
+    },
+    "children": [],
+    "raw": {
+      "type": "StaticText",
+      "label": "Used to demonstrate permission request dialogs.",
+      "name": "Used to demonstrate permission request dialogs.",
+      "rect": {
+        "x": 71,
+        "y": 473,
+        "width": 260,
+        "height": 43
+      }
+    }
+  },
+  {
+    "type": "Button",
+    "label": "Don’t Allow",
+    "identifier": "Don’t Allow",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 57,
+      "y": 535,
+      "width": 140,
+      "height": 48
+    },
+    "children": [],
+    "raw": {
+      "type": "Button",
+      "label": "Don’t Allow",
+      "name": "Don’t Allow",
+      "rect": {
+        "x": 57,
+        "y": 535,
+        "width": 140,
+        "height": 48
+      }
+    }
+  },
+  {
+    "type": "Button",
+    "label": "Allow",
+    "identifier": "Allow",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 205,
+      "y": 535,
+      "width": 140,
+      "height": 48
+    },
+    "children": [],
+    "raw": {
+      "type": "Button",
+      "label": "Allow",
+      "name": "Allow",
+      "rect": {
+        "x": 205,
+        "y": 535,
+        "width": 140,
+        "height": 48
+      }
+    }
+  },
+  {
+    "type": "StaticText",
+    "label": "4:17 PM",
+    "identifier": "4:17 PM",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 57,
+      "y": 14,
+      "width": 34,
+      "height": 20
+    },
+    "children": [],
+    "raw": {
+      "type": "StaticText",
+      "label": "4:17 PM",
+      "name": "4:17 PM",
+      "rect": {
+        "x": 57,
+        "y": 14,
+        "width": 34,
+        "height": 20
+      }
+    }
+  },
+  {
+    "type": "Button",
+    "label": "Return to Contacts",
+    "identifier": "breadcrumb",
+    "isVisible": true,
+    "isEnabled": true,
+    "bounds": {
+      "x": 11,
+      "y": 33,
+      "width": 60,
+      "height": 13
+    },
+    "children": [],
+    "raw": {
+      "type": "Button",
+      "label": "Return to Contacts",
+      "name": "breadcrumb",
+      "identifier": "breadcrumb",
+      "rect": {
+        "x": 11,
+        "y": 33,
+        "width": 60,
+        "height": 13
+      }
+    }
+  }
+]

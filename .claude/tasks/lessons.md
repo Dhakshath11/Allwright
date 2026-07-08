@@ -221,6 +221,140 @@ If those phrases appear, stop. Either the primitive exists (use it) or it doesn'
 
 ---
 
+## 16. `page.setViewportSize` is not implemented on `MobileWebViewPage`
+
+**Mistake:** After attaching to a WebView (`utils.getByWebView().page()`), called `page.setViewportSize({ width, height })` to fix layout. It threw `page.setViewportSize is not a function` at runtime. `MobileWebViewPage` uses TypeScript declaration merging (`interface MobileWebViewPage extends PlaywrightPage {}`) but only implements a subset of Playwright's `Page` methods — the rest are unimplemented stubs that don't exist at runtime.
+
+**Rule:** `MobileWebViewPage` is not a full Playwright `Page`. Don't call methods not explicitly listed in the mobilewright docs for `WebViewLocator.page()`. If a method throws "not a function", remove the call — there's no fallback. The web `Page` type annotation is a convenience overlay, not a guarantee of full implementation.
+
+**Example:**
+- ❌ `await page.setViewportSize({ width: 390, height: 844 });` — throws at runtime
+- ✅ Remove the call; the WKWebView renders at whatever size the native container allocates
+
+---
+
+## 17. `terminateApp` in `afterEach`, not `launchApp` — resumption is default on mobile
+
+**Mistake:** Used `device.launchApp(PLAYGROUND)` in `afterEach` to "reset" between tests. `launchApp` on iOS resumes a suspended app at whatever screen it was on (e.g. the success screen after a test that didn't tap Back). The next test's `launchApp` call resumed the suspended app at the success screen instead of launching fresh to the dashboard — breaking the `beforeEach`/`beforeAll` assumptions.
+
+**Rule:** Use `device.terminateApp(bundleId)` in `afterEach` to kill the process. The next `device.launchApp` then always starts the app cold from the home/dashboard screen. `.catch(() => {})` to swallow the error when the app wasn't running.
+
+**Example:**
+- ❌ `afterEach: async ({ device }) => { await device.launchApp(PLAYGROUND); }` — resumes at last screen
+- ✅ `afterEach: async ({ device }) => { await device.terminateApp(PLAYGROUND).catch(() => {}); }` — kills process; next launch is fresh
+
+---
+
+## 18. `expect*` wrapper methods on `MobileUtils` hide which locator failed
+
+**Mistake:** `MobileUtils` shipped with 10 `expectXxx` wrappers (`expectVisible(l)` → `expect(l).toBeVisible()`, etc.). When an assertion failed, the stack trace pointed to `mobile.utils.ts:168` — not the screen method or spec line that called it. The locator's identity was lost in the wrapper layer. Also, wrappers prevented assertion chaining (`.not.toBeVisible()`) and custom timeout options.
+
+**Rule:** Don't wrap `expect(locator).toAssertionX()` in utility methods. Call `expect(locator).toBeVisible()` etc. directly in screen object methods and spec steps. The line number in the failure report will point at the actual call site. The only legitimate `expect` in utils is a one-off structural assertion that combines multiple locators into a named step — and even then, use `test.step` to name it, not a wrapper.
+
+**Tells that a wrapper is wrong:**
+- The wrapper is a 1:1 rename (`expectVisible` → `toBeVisible`)
+- The wrapper prevents `.not.` chaining
+- The wrapper prevents passing `{ timeout }` options
+
+**Example:**
+- ❌ `async expectVisible(l: Locator) { await expect(l).toBeVisible(); }` in utils — failure at `utils.ts:168`
+- ✅ `expect(this.editButton).toBeVisible()` in the screen method — failure at `contact-detail.screen.ts:104`
+
+---
+
+## 19. `device.startRecording()` requires `{ output, timeLimit }` — no args crashes at runtime
+
+**Mistake:** Called `device.startRecording()` with no arguments. Crashed immediately with `Cannot read properties of undefined (reading 'output')`.
+
+**Rule:** `device.startRecording({ output: <absolute-path>, timeLimit: <seconds> })` — both args are required. `device.stopRecording()` returns a `RecordingResult` object; the video is at `result.output` (a file path on disk), NOT raw bytes. Read it with `fs.readFileSync(result.output)` before attaching to the report. Import `RecordingResult` from `@mobilewright/protocol`.
+
+**Example:**
+- ❌ `await device.startRecording()` — crashes with property read on undefined
+- ✅
+  ```ts
+  const outputPath = path.join(testInfo.project.outputDir, `recording-${Date.now()}.mp4`);
+  await device.startRecording({ output: outputPath, timeLimit: 30 });
+  // ... test actions ...
+  const result = await device.stopRecording();
+  await testInfo.attach('recording', { body: fs.readFileSync(result.output), contentType: 'video/mp4' });
+  ```
+
+---
+
+## 20. `screen.screenshot()` always returns PNG bytes — never save it as `.jpeg`
+
+**Mistake:** Saved the screenshot to disk as `Preferences_Image.jpeg` and attached with `contentType: 'image/jpeg'`. The bytes are PNG regardless of the filename — the HTML report declared the attachment as JPEG and browsers would refuse to render it.
+
+**Rule:** `screen.screenshot()` always returns PNG bytes. Use `.png` extension and `contentType: 'image/png'` for both disk writes and `testInfo.attach`. If JPEG is needed, a separate image-conversion step is required.
+
+**Example:**
+- ❌ `fs.writeFileSync('Preferences_Image.jpeg', await screen.screenshot())` + `contentType: 'image/jpeg'`
+- ✅ `fs.writeFileSync('Preferences_Image.png', bytes)` + `contentType: 'image/png'`
+
+---
+
+## 21. Verify exact label text from the live view tree — don't assume it matches the visible UI label
+
+**Mistake:** Used `getByText('SharedPref/Keychain')` (no spaces) based on the visual label. The live view tree shows `'SharedPref / Keychain'` (spaces around the slash). The locator resolved to nothing.
+
+**Rule:** Before writing any `getByText` or `getByTestId` string, confirm the exact value from the captured snapshot JSON. UI display text and view-tree label text often differ (spacing, casing, truncation). The dump is ground truth.
+
+**Example:**
+- ❌ `getByText('SharedPref/Keychain')` — assumed from visual label
+- ✅ Grep the snapshot JSON: `grep -i "sharedpref" ios_playground_main.json` → confirms `'SharedPref / Keychain'`
+
+---
+
+## 22. Dynamic/post-action UI states need their own snapshot capture — don't guess the node structure
+
+**Mistake:** Assumed `getByText('STATUS SAVED')` would work for the post-save state without capturing a snapshot of that state. The string doesn't exist as a single node; the locator never resolved and the failure was only caught at runtime.
+
+**Rule:** For any UI state that only exists after an action (save confirmation, success banner, error message, status update), add a dedicated capture block that triggers the action first — fill values, tap Save, then dump. Analyse that snapshot to get the real node structure before writing the assertion. Never assume a visually-displayed string maps to a single `StaticText` node.
+
+The snapshot workflow applies to dynamic states too — the only difference is the capture block must navigate to and trigger the state, not just navigate to the screen.
+
+**Example:**
+```ts
+// In _snapshots_ios.spec.ts — capture the post-save state
+test('dump: ios_playground_preferences_saved', async ({ device, screen }) => {
+  const utils = new MobileUtils(screen);
+  await device.terminateApp(PLAYGROUND_ID).catch(() => {});
+  await device.launchApp(PLAYGROUND_ID);
+  await utils.tap(utils.getByTestId('SharedPref / Keychain'));
+  await utils.fill(utils.getByTestId('username_field'), 'Robert');
+  await utils.fill(utils.getByTestId('password_field'), 'test');
+  await utils.tap(utils.getByTestId('save_button'));
+  // NOW dump — the status node is visible in this state
+  await dump(screen, 'ios_playground_preferences_saved.json');
+});
+```
+
+Then grep the snapshot for the status text to find the real type and identifier before writing the assertion locator.
+
+- ❌ Guess `getByText('STATUS SAVED')` → runtime failure
+- ✅ Capture post-save state → grep snapshot → confirm `getByTestId('status_message')` from the dump
+
+---
+
+## 23. All locators must be declared as `private readonly` fields in the constructor — never created inline inside methods
+
+**Mistake:** `expectStatusSaved()` created its locator inline: `await expect(this.utils.getByTestId('status_message')).toBeVisible()` inside the method body rather than declaring `private readonly statusMessage: Locator` in the constructor.
+
+**Rule:** Every locator a screen class uses must be declared as a `private readonly <name>: Locator` field and initialized in the constructor via `this.utils.getByX(...)`. Inline locator creation inside methods breaks POM co-location discipline — the locator map for a screen is its constructor, not scattered through method bodies. The reviewer treats this as `[Minor]` but it compounds quickly across a large screen class.
+
+**Example:**
+- ❌ `async expectStatusSaved() { await expect(this.utils.getByTestId('status_message')).toBeVisible(); }` — locator created inline
+- ✅
+  ```ts
+  private readonly statusMessage: Locator;
+  constructor(screen: Screen) {
+    this.statusMessage = this.utils.getByTestId('status_message');
+  }
+  async expectStatusSaved() { await expect(this.statusMessage).toBeVisible(); }
+  ```
+
+---
+
 ## 14. `projects[]` without `testMatch` runs every spec on every project — and the test count multiplies silently
 
 **Mistake:** Added two projects (`ios`, `android`) to `mobilewright.config.ts` without per-project `testMatch`. Running `npm run test:mobile -- mobile_` reported **16 tests in 2 workers** — 8 specs (5 iOS + 3 Android) × 2 projects. The Android project was trying to drive the iOS specs against the Pixel emulator and vice versa. The number "16" only stood out because the user happened to be counting.
@@ -250,3 +384,28 @@ If those phrases appear, stop. Either the primitive exists (use it) or it doesn'
   ```
   The filename convention IS the contract. Cross-platform specs need their own dedicated project (or get an explicit testMatch glob that includes them in every relevant project).
 
+---
+
+## 24. iOS system alert labels use typographic (curly) quotes — not ASCII
+
+**Mistake:** `PlaygroundPermissionsAlertScreen` used straight ASCII double quotes in `getByText('"Playground" would like to access the Camera.')` and a straight ASCII apostrophe in `getByRole('button', "Don't Allow")`. The iOS system permission dialog renders labels with typographic curly quotes (U+201C `"`, U+201D `"`, U+2019 `'`). Both locators resolved to nothing; `expectAlertVisible()` timed out with "Expected element to be visible, but it was not."
+
+**Rule:** When writing locators for iOS SYSTEM alerts (camera, microphone, location, etc.), always verify the exact quote codepoints from a captured snapshot — never assume ASCII. iOS uses typographic quotes for alert titles and button labels. Use explicit Unicode escapes (`“`, `”`, `’`) or the actual curly characters, and add a comment pointing to the snapshot for future verification.
+
+**Tells that the bug is present:**
+- `getByText('"<AppName>" would like to...')` with straight `"` around the app name
+- `getByRole('button', "Don't Allow")` with straight apostrophe
+- Test reaches the alert step but times out at `toBeVisible`
+
+**Example:**
+- ❌
+  ```ts
+  getByText('"Playground" would like to access the Camera.')   // straight quotes
+  getByRole('button', "Don't Allow")                           // straight apostrophe
+  ```
+- ✅
+  ```ts
+  // Verified from ios_playground_permissions_popup.json — U+201C/201D/2019
+  getByText('"Playground" would like to access the Camera.')   // curly double quotes
+  getByRole('button', 'Don't Allow')                           // curly apostrophe
+  ```

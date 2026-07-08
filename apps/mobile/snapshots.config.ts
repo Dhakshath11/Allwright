@@ -22,7 +22,7 @@ import { defineConfig } from 'mobilewright';
 export default defineConfig({
   testDir: './sample/snapshots',
   reporter: 'html',
-  timeout: 90_000,
+  timeout: 180_000,
   workers: 2,
   fullyParallel: false,
   projects: [

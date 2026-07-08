@@ -1,0 +1,149 @@
+{
+  "ios_playground_permissions_initial": {
+    "screenTitle": "Permissions",
+    "elements": {
+      "backButton": {
+        "type": "Button",
+        "label": "Back",
+        "locator": "getByTestId('BackButton')",
+        "strategy": "accessibilityIdentifier",
+        "assertTarget": false,
+        "offScreen": false,
+        "role": "navigation"
+      },
+      "screenTitle": {
+        "type": "StaticText",
+        "label": "Permissions",
+        "locator": "getByTestId('Permissions')",
+        "strategy": "accessibilityIdentifier",
+        "assertTarget": true,
+        "offScreen": false,
+        "role": "screenTitle"
+      },
+      "cameraPermissionStatus": {
+        "type": "StaticText",
+        "label": "Not Determined",
+        "locator": "getByTestId('camera_permission_status')",
+        "strategy": "accessibilityIdentifier",
+        "assertTarget": true,
+        "offScreen": false,
+        "expectedText": "Not Determined",
+        "role": "statusIndicator"
+      },
+      "requestCameraPermissionButton": {
+        "type": "Button",
+        "label": "Request Camera Permission",
+        "locator": "getByTestId('request_camera_permission_button')",
+        "strategy": "accessibilityIdentifier",
+        "assertTarget": false,
+        "offScreen": false,
+        "role": "primaryAction"
+      },
+      "breadcrumb": {
+        "type": "Button",
+        "label": "Return to Contacts",
+        "locator": "getByTestId('breadcrumb')",
+        "strategy": "accessibilityIdentifier",
+        "assertTarget": false,
+        "offScreen": false,
+        "role": "navigation"
+      }
+    }
+  },
+
+  "ios_playground_permissions_popup": {
+    "screenTitle": "iOS System Permission Alert",
+    "note": "System alert rendered by iOS TCC — no app-controlled testIds on alert buttons. Buttons resolved via role+name (priority 3).",
+    "elements": {
+      "alertTitle": {
+        "type": "StaticText",
+        "label": "“Playground” would like to access the Camera.",
+        "locator": "getByText('“Playground” would like to access the Camera.')",
+        "strategy": "visibleText",
+        "assertTarget": true,
+        "offScreen": false,
+        "role": "alertTitle"
+      },
+      "allowButton": {
+        "type": "Button",
+        "label": "Allow",
+        "locator": "getByRole('button', 'Allow')",
+        "strategy": "role+name",
+        "assertTarget": false,
+        "offScreen": false,
+        "role": "primaryAction"
+      },
+      "dontAllowButton": {
+        "type": "Button",
+        "label": "Don't Allow",
+        "locator": "getByRole('button', \"Don't Allow\")",
+        "strategy": "role+name",
+        "assertTarget": false,
+        "offScreen": false,
+        "role": "dismissAction"
+      },
+      "breadcrumb": {
+        "type": "Button",
+        "label": "Return to Contacts",
+        "locator": "getByTestId('breadcrumb')",
+        "strategy": "accessibilityIdentifier",
+        "assertTarget": false,
+        "offScreen": false,
+        "role": "navigation"
+      }
+    }
+  },
+
+  "ios_playground_permissions_granted": {
+    "screenTitle": "Permissions",
+    "note": "Post-grant state — identical structure to initial; only cameraPermissionStatus label changes to 'Granted'. requestCameraPermissionButton remains visible but is a no-op when already granted.",
+    "elements": {
+      "backButton": {
+        "type": "Button",
+        "label": "Back",
+        "locator": "getByTestId('BackButton')",
+        "strategy": "accessibilityIdentifier",
+        "assertTarget": false,
+        "offScreen": false,
+        "role": "navigation"
+      },
+      "screenTitle": {
+        "type": "StaticText",
+        "label": "Permissions",
+        "locator": "getByTestId('Permissions')",
+        "strategy": "accessibilityIdentifier",
+        "assertTarget": true,
+        "offScreen": false,
+        "role": "screenTitle"
+      },
+      "cameraPermissionStatus": {
+        "type": "StaticText",
+        "label": "Granted",
+        "locator": "getByTestId('camera_permission_status')",
+        "strategy": "accessibilityIdentifier",
+        "assertTarget": true,
+        "offScreen": false,
+        "expectedText": "Granted",
+        "role": "statusIndicator"
+      },
+      "requestCameraPermissionButton": {
+        "type": "Button",
+        "label": "Request Camera Permission",
+        "locator": "getByTestId('request_camera_permission_button')",
+        "strategy": "accessibilityIdentifier",
+        "assertTarget": false,
+        "offScreen": false,
+        "role": "primaryAction"
+      },
+      "breadcrumb": {
+        "type": "Button",
+        "label": "Return to Contacts",
+        "locator": "getByTestId('breadcrumb')",
+        "strategy": "accessibilityIdentifier",
+        "assertTarget": false,
+        "offScreen": false,
+        "role": "navigation"
+      }
+    }
+  }
+}

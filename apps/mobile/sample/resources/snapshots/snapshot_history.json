@@ -10,5 +10,54 @@
       }
     ]
   },
-  "snapshots": {}
+  "snapshots": {
+    "ios_playground_main.json": [
+      {
+        "capturedAt": "2026-06-28T15:40:00Z",
+        "platform": "ios",
+        "screen": "playground-main",
+        "triggeredBy": "initial-capture"
+      }
+    ],
+    "ios_playground_preferences.json": [
+      {
+        "capturedAt": "2026-06-28T15:40:00Z",
+        "platform": "ios",
+        "screen": "playground-preferences",
+        "triggeredBy": "initial-capture"
+      }
+    ],
+    "ios_playground_continuous_animation.json": [
+      {
+        "capturedAt": "2026-06-28T15:40:00Z",
+        "platform": "ios",
+        "screen": "playground-continuous-animation",
+        "triggeredBy": "initial-capture"
+      }
+    ],
+    "ios_playground_permissions_initial.json": [
+      {
+        "capturedAt": "2026-07-08T16:17:00Z",
+        "platform": "ios",
+        "screen": "playground-permissions-initial",
+        "triggeredBy": "initial-capture"
+      }
+    ],
+    "ios_playground_permissions_popup.json": [
+      {
+        "capturedAt": "2026-07-08T16:17:00Z",
+        "platform": "ios",
+        "screen": "playground-permissions-popup",
+        "triggeredBy": "initial-capture"
+      }
+    ],
+    "ios_playground_permissions_granted.json": [
+      {
+        "capturedAt": "2026-07-08T16:17:00Z",
+        "platform": "ios",
+        "screen": "playground-permissions-granted",
+        "triggeredBy": "initial-capture"
+      }
+    ]
+  }
 }
