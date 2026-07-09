@@ -6,11 +6,13 @@
     "lint:fix": "eslint . --fix",
     "test:mobile": "mobilewright test --config apps/mobile/mobilewright.config.ts",
     "test:mobile:snapshots": "mobilewright test --config apps/mobile/snapshots.config.ts",
-    "test:web": "echo \"web suite not yet scaffolded\" && exit 1",
+    "test:web": "playwright test --config apps/web/playwright.config.ts",
+    "test:web:snapshots": "playwright test --config apps/web/snapshots.config.ts",
     "test:api": "echo \"api suite not yet scaffolded\" && exit 1",
     "test": "npm run test:mobile"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@eslint/js": "^9.39.4",
     "@mobilewright/test": "^0.0.44",
     "@playwright/cli": "^0.1.14",

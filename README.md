@@ -4,7 +4,7 @@
 
 Allwright integrates **Playwright** (web), **Mobilewright** (mobile), and a planned REST client (API) behind a single facade so test authors learn one vocabulary regardless of the surface under test. The long-term goal is a **prompt-driven QA product** where manual testers describe tests in plain English and an LLM composes runnable code against Allwright's primitives.
 
-**Status:** early-stage development. Mobile surface is scaffolded and runs the iOS Contacts app as a smoke test. Web and API surfaces are not yet started.
+**Status:** early-stage development. Mobile surface is scaffolded and runs the iOS Contacts app as a smoke test. Web surface is scaffolded and runs TodoMVC as a smoke test. API surface not yet started.
 
 ---
 
@@ -35,7 +35,8 @@ The smoke test launches the iOS **Contacts** app, taps **Add**, fills a sample c
 |---|---|
 | `npm run test:mobile` | Regression suite under `apps/mobile/sample/tests/` |
 | `npm run test:mobile:snapshots` | Locator-discovery captures under `apps/mobile/sample/snapshots/`. Pass `-- --project=<ios\|android>` to scope. |
-| `npm run test:web`    | *(stub — exits non-zero until web surface is scaffolded)* |
+| `npm run test:web`    | Playwright regression suite under `apps/web/sample/tests/`. Runs 3 browser projects (chromium/firefox/webkit). |
+| `npm run test:web:snapshots` | Accessibility-tree captures under `apps/web/sample/snapshots/`. Pass `-- --project=<chromium\|firefox\|webkit>` to scope. |
 | `npm run test:api`    | *(stub — exits non-zero until API surface is scaffolded)* |
 | `npm test`            | Alias for `test:mobile` (only working surface today) |
 | `npm run lint`        | ESLint over the repo (type-aware via `typescript-eslint/recommended-type-checked`) |
@@ -67,9 +68,29 @@ projects: [
 - **Serial state chains** (e.g. add → edit → delete) live behind `test.describe.configure({ mode: 'serial' })` at the top of each `mobile_<platform>.spec.ts`. `fullyParallel: true` stays at the config level for cross-file parallelism.
 - **Parallel-execution caveat:** with `workers: 2`, both emulators must be up if you want both projects running simultaneously. Single-emulator runs should pass `--project=<name>` to scope.
 
+## Platform target (web)
+
+`apps/web/playwright.config.ts` defines a **three-project matrix** — chromium, firefox, and webkit run as separate Playwright projects, each constrained to its own specs via `testMatch`:
+
+```ts
+projects: [
+  { name: 'chromium', testMatch: /_chromium\.spec\.ts$/, use: { ...devices['Desktop Chrome'] } },
+  { name: 'firefox',  testMatch: /_firefox\.spec\.ts$/,  use: { ...devices['Desktop Firefox'] } },
+  { name: 'webkit',   testMatch: /_webkit\.spec\.ts$/,   use: { ...devices['Desktop Safari'] } },
+],
+```
+
+- **Filename convention is the contract.** Specs must end with `_chromium.spec.ts`, `_firefox.spec.ts`, or `_webkit.spec.ts` — same load-bearing pattern as mobile.
+- **Target app is TodoMVC** at `https://demo.playwright.dev/todomvc/#/`. baseURL is `https://demo.playwright.dev`.
+- **Serial state chain** (add / complete / delete / filter) lives behind `test.describe.configure({ mode: 'serial' })` in `web_chromium.spec.ts`.
+- **`screens/` has no browser subfolders.** HTML renders identically across all three browsers, so a single `TodoListScreen` class serves every project. Mobile requires `ios/` and `android/` subdirectories because native view trees diverge between platforms; HTML does not have this problem.
+- **`.locator` accessor pattern.** Screen fields are typed as `WebLocator`. Playwright's `expect()` requires a raw Playwright `Locator`, not the wrapper — so assertions are `expect(this.field.locator).toBeVisible()`. Passing `this.field` directly to `expect()` is a type error.
+- **Fresh page per test.** Playwright creates a new `Page` for every test automatically. Snapshot tests each call `page.goto()` independently — there is no persistent app state between tests (unlike mobile serial mode, which relies on state accumulated across tests).
+- **Web snapshots are `.yaml` + `.png`**, produced by `locator.ariaSnapshot()`. These are the accessibility trees, not JSON view dumps.
+
 ## Architecture in one paragraph
 
-`core/` holds surface-agnostic contracts (`LocatorRoot`, `LocatorLike`) and a generic `CoreUtils<L, R>` facade — **no mobilewright/playwright imports**. Each surface lives under `apps/<surface>/` and provides a concrete subclass (`MobileUtils extends CoreUtils<Locator, Screen>` today; `WebUtils extends CoreUtils<Locator, Page>` later) that adds surface-only primitives and the `expect*` assertion helpers. Test authors only ever import the surface util — the `core/` layer stays invisible. Full architectural rationale lives in [`CLAUDE.md`](./CLAUDE.md).
+`core/` holds surface-agnostic contracts (`LocatorRoot`, `LocatorLike`) and a generic `CoreUtils<L, R>` facade — **no mobilewright/playwright imports**. Each surface lives under `apps/<surface>/` and provides a concrete subclass that adds surface-only primitives. Today `MobileUtils extends CoreUtils<Locator, Screen>` and `WebUtils extends CoreUtils<WebLocator, WebPage>` — `WebLocator` is a thin adapter that bridges Playwright's `Locator` to the `LocatorLike` contract. Test authors only ever import the surface util — the `core/` layer stays invisible. Full architectural rationale lives in [`CLAUDE.md`](./CLAUDE.md).
 
 `MobileUtils` swipe API (all screen-level swipes use `device.io.swipe` which has no `duration` support — omitted by design):
 
@@ -100,15 +121,34 @@ Mobile surface today:
 - Android — 4 screens in `apps/mobile/sample/screens/android/` driven by `mobile_android.spec.ts` (add / edit / delete contact + long-press HOME + notification shade open/dismiss). Notable Android-vs-iOS divergences captured in the POMs: Delete lives on the *detail* screen (not edit form); no `tapAddPhone` step (phone EditText is always rendered with `"+1"` prefix); header strings are `"Create contact"` / `"Edit contact"`. `MobileUtils` has no `clear()` — mobilewright lacks the primitive — so edit tests assume a clean pre-state (serial mode handles this).
 - **Device API smoke tests** — `mobile_device_ios.spec.ts` and `mobile_device_android.spec.ts` exercise every public method on the `device` fixture (`screenSize`, `getOrientation`/`setOrientation`, `launchApp`, `getForegroundApp`, `terminateApp`, `listApps`, `openUrl`/`goto`, `startRecording`/`stopRecording`). These are framework-level checks with no POM dependency. The iOS and Android variants are not interchangeable — they use platform-specific bundle IDs and account for platform behavioural differences (e.g. Springboard vs. home launcher after `terminateApp`).
 
+Web surface today:
+- `apps/web/playwright.config.ts` defines a **three-project matrix** — chromium, firefox, and webkit each constrained to their own specs via `testMatch: /_<browser>\.spec\.ts$/`. Filename convention is the contract, same as mobile.
+- Target app is **TodoMVC** at `https://demo.playwright.dev/todomvc/#/`. The baseURL is `https://demo.playwright.dev` and specs navigate to the `#/todomvc` path.
+- `web_chromium.spec.ts` contains 4 serial tests (add todo / complete todo / delete todo / filter active). Additional browser specs follow the `web_<browser>.spec.ts` naming convention.
+- `screens/` has **no browser subfolders** — HTML renders identically across chromium/firefox/webkit, so a single `TodoListScreen` class in `apps/web/sample/screens/` serves all three projects. This differs from mobile, where iOS and Android view trees diverge and require separate POM directories.
+- Screen assertions use `expect(this.field.locator).toBeVisible()` — the `.locator` getter on `WebLocator` surfaces the raw Playwright `Locator` that Playwright's `expect()` needs. Passing the `WebLocator` wrapper itself to `expect()` is a type error.
+- No `global-setup.ts` — no device permissions to grant in a browser context.
+- Snapshots are `.yaml` (from `locator.ariaSnapshot()`) + `.png`, not `.json`. Each snapshot test calls `page.goto()` independently because Playwright provides a fresh `Page` per test.
+
 ## Adding a new screen object (POM)
 
-Strict POM: one visible screen state = one class. To extract locators from a live app:
+Strict POM: one visible screen state = one class.
+
+**Mobile:** to extract locators from a live app:
 
 1. Add a `test()` block to the platform's snapshot spec in `apps/mobile/sample/snapshots/` (`_snapshots_ios.spec.ts` or `_snapshots_android.spec.ts`) that navigates to your target state.
 2. `npm run test:mobile:snapshots -- --project=<platform>` — writes one JSON file per test to `apps/mobile/sample/resources/snapshots/<platform>_<state>.json`. Snapshot specs live in `sample/snapshots/` and are discovered only by `snapshots.config.ts`; the regression suite (`mobilewright.config.ts`) points `testDir` at `sample/tests/`, so the two never overlap.
 3. Open the relevant snapshot file (e.g. `android_contacts_list_view.json`), follow the recipe in `.claude/skills/screen-builder/SKILL.md`.
 4. Reference shape: any file in `apps/mobile/sample/screens/ios/`.
 5. **Never delete the snapshot JSON.** Snapshot files in `resources/snapshots/` are a permanent record. When the UI changes, recapture (overwrite) the file — the timestamp change is logged in `snapshot_history.json`. This history feeds the Auto-Healer strategy (see [Agentic QA Approach](#agentic-qa-approach)).
+
+**Web:** to extract locators from a page state:
+
+1. Navigate to the target page state in a browser and note the URL/path.
+2. Add a `test()` block to `apps/web/sample/snapshots/_snapshots_chromium.spec.ts` that calls `page.goto(url)` and then `locator.ariaSnapshot()` for the relevant region.
+3. `npm run test:web:snapshots -- --project=chromium` — writes one `.yaml` + `.png` per test to `apps/web/sample/resources/snapshots/`. The YAML accessibility tree lists all roles, names, and testIds visible on the page.
+4. Read the YAML, pick locators using the priority table (`getByTestId` > `getByLabel` > `getByRole(role, name)` > `getByPlaceholder` > `getByText`), and build the screen class using `WebUtils` and `WebLocator` fields.
+5. Reference shape: `apps/web/sample/screens/todo-list.screen.ts`. **Never delete the snapshot YAML/PNG** — same permanent-record rule as mobile.
 
 ## Conventions
 

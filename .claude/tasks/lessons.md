@@ -409,3 +409,100 @@ Then grep the snapshot for the status text to find the real type and identifier 
   getByText('"Playground" would like to access the Camera.')   // curly double quotes
   getByRole('button', 'Don't Allow')                           // curly apostrophe
   ```
+
+---
+
+## 25. `page.goto('/')` with a path-containing `baseURL` navigates to the domain root — not the path
+
+**Mistake:** Set `baseURL: 'https://demo.playwright.dev/todomvc'` in `playwright.config.ts` and used `page.goto('/')` in `beforeEach`. Navigation landed on `https://demo.playwright.dev/` (a 404) — not `https://demo.playwright.dev/todomvc/`. The URL path in `baseURL` is discarded when `goto` receives an absolute-path argument starting with `/`.
+
+**Rule:** Playwright resolves `goto(path)` relative to the *origin* of `baseURL`, not the full URL. If your app lives under a sub-path (e.g. `/todomvc/#/`), either (a) set `baseURL` to the domain origin only (`https://demo.playwright.dev`) and use the full path in `goto('/todomvc/#/')`, or (b) set `baseURL` to include the trailing slash (`https://demo.playwright.dev/todomvc/`) and use `goto('.')`. Never mix a sub-path `baseURL` with a root-relative `goto('/')`.
+
+**Example:**
+- ❌ `baseURL: 'https://demo.playwright.dev/todomvc'` + `goto('/')` → lands on domain root (404)
+- ✅ `baseURL: 'https://demo.playwright.dev'` + `goto('/todomvc/#/')` → lands on the TodoMVC app
+
+---
+
+## 26. `page.accessibility.snapshot()` is removed from Playwright types — use `locator.ariaSnapshot()`
+
+**Mistake:** Used `page.accessibility.snapshot()` in the web snapshot spec to capture the accessibility tree. TypeScript error: `Property 'accessibility' does not exist on type 'Page'`. The `accessibility` API was deprecated in Playwright 1.46 and removed from the type definitions by 1.58.
+
+**Rule:** Use `page.locator('body').ariaSnapshot()` (added in Playwright 1.47). It returns a YAML string representing the full ARIA node tree — roles, names, states (checked, selected, expanded) — readable by both humans and tools. Write it as `.yaml` (not `.json`). The YAML format is actually more readable for locator discovery than the old JSON object format.
+
+**Example:**
+- ❌ `const tree = await page.accessibility.snapshot();` — type error in Playwright ≥ 1.47
+- ✅ `const tree = await page.locator('body').ariaSnapshot();` → YAML string → write with `.yaml` extension
+
+---
+
+## 27. Web snapshot tests need independent `page.goto()` in each test — mobile's persistent-session pattern doesn't apply
+
+**Mistake:** Wrote web snapshot tests as a sequential state chain where each test navigates from the previous test's final state (same pattern as mobile's `_snapshots_ios.spec.ts` which works because mobilewright keeps the app open across serial tests). The second test timed out trying to `fill()` an input — Playwright had given it a fresh blank page with no URL loaded.
+
+**Rule:** Playwright gives each test a fresh browser context and a blank page. There is no cross-test page persistence. Every snapshot test (and every regression test not using `beforeEach`) must call `page.goto(url)` to set up its own starting state. The mobile pattern of navigating forward from previous state is mobilewright-specific — it cannot be ported to Playwright without explicitly sharing the `page` fixture across tests using a workaround (`test.extend` with shared page, or `beforeAll`).
+
+**Example:**
+- ❌
+  ```ts
+  test('dump: with items', async ({ page }) => {
+    // assumes previous test navigated to /todomvc/#/ — times out, blank page
+    await page.fill('input[placeholder="..."]', 'Buy groceries');
+  });
+  ```
+- ✅
+  ```ts
+  test('dump: with items', async ({ page }) => {
+    await page.goto('/todomvc/#/');  // always set up own state
+    await page.fill('input[placeholder="..."]', 'Buy groceries');
+  });
+  ```
+
+---
+
+## 28. Playwright's `Locator` and `Page` don't satisfy `LocatorLike` / `LocatorRoot` — use inlined adapter classes
+
+**Mistake:** Tried to write `WebUtils extends CoreUtils<Locator, Page>` using Playwright's native types directly. TypeScript rejects it because `Locator` is missing `getText()`, `getValue()`, `isSelected()`, `isFocused()` (Playwright uses `innerText()`, `inputValue()`, and `evaluate()` instead), and `Page.screenshot()` uses `{ type }` not `{ format }`.
+
+**Rule:** Create two adapter classes inlined in `web.utils.ts` — not in separate files:
+- `export class WebLocator implements LocatorLike` — wraps Playwright's `Locator`, maps the contract to Playwright's actual API. Expose `readonly locator: Locator` for screen objects to access the raw Playwright Locator for `expect()` calls.
+- `class WebPage implements LocatorRoot<WebLocator>` — unexported, wraps `Page`, bridges the `screenshot({format})` vs `screenshot({type})` mismatch.
+Then `WebUtils extends CoreUtils<WebLocator, WebPage>`.
+
+Screen objects type their locator fields as `WebLocator` and write assertions as `expect(this.field.locator).toBeVisible()` — the `.locator` accessor is the only visible difference from the mobile pattern.
+
+**Tells that the adapter is needed:**
+- `Type 'Locator' does not satisfy 'LocatorLike'` — missing methods
+- `Property 'getText' does not exist on type 'Locator'`
+
+**Example:**
+- ❌ `class WebUtils extends CoreUtils<Locator, Page>` — TypeScript error, Locator missing contract methods
+- ✅
+  ```ts
+  export class WebLocator implements LocatorLike {
+    constructor(readonly locator: Locator) {}
+    async getText(): Promise<string> { return this.locator.innerText(); }
+    async getValue(): Promise<string> { return this.locator.inputValue(); }
+    // ...
+  }
+  class WebPage implements LocatorRoot<WebLocator> { /* bridges Page */ }
+  export class WebUtils extends CoreUtils<WebLocator, WebPage> { ... }
+  ```
+
+---
+
+## 29. `AriaRole` is not a named export from `@playwright/test` — infer it from the method signature
+
+**Mistake:** Wrote `import type { Page, Locator, AriaRole } from '@playwright/test'`. TypeScript error: `Module '"@playwright/test"' has no exported member 'AriaRole'`. Playwright exposes `AriaRole` as an internal type used by `getByRole` but does not re-export it as a named type from the package index.
+
+**Rule:** Infer the type from the method signature — same pattern as inferring `HardwareButton` and `SwipeDirection` in `mobile.utils.ts`:
+```ts
+type AriaRole = Parameters<Page['getByRole']>[0];
+```
+This always stays in sync with whatever Playwright's `getByRole` actually accepts, requires no import, and fails loudly if Playwright changes the signature.
+
+Also: web does NOT need `aria.types.ts`. Playwright's own type covers all WAI-ARIA roles — it's not a narrow custom union like mobile's (which mirrors a 12-entry internal map). Remove any `aria.types.ts` from `apps/web/utils/`.
+
+**Example:**
+- ❌ `import type { AriaRole } from '@playwright/test'` — type error: not exported
+- ✅ `type AriaRole = Parameters<Page['getByRole']>[0];` — self-syncing inference, no import needed

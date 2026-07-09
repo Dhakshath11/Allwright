@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-Allwright is in **early-stage development**. Mobile surface (`apps/mobile/`) is scaffolded with mobilewright running against the iOS Contacts app as a smoke test. Web and API surfaces are not yet started. The sections below describe both the **current** layout and the **intended** end state.
+Allwright is in **early-stage development**. Mobile surface (`apps/mobile/`) is scaffolded with mobilewright running against the iOS Contacts app as a smoke test. Web surface is scaffolded with Playwright running against TodoMVC. API surface is not yet started. The sections below describe both the **current** layout and the **intended** end state.
 
 When the user asks you to scaffold something, prefer adding the minimum that satisfies the request over generating the full proposed tree.
 
@@ -86,26 +86,40 @@ Allwright/
 │   └── utils/
 │       └── core.utils.ts              # CoreUtils<L, R> — generic facade (no getByRole)
 ├── apps/
-│   └── mobile/
-│       ├── mobilewright.config.ts             # regression suite — testDir: ./sample/tests
-│       ├── snapshots.config.ts                # locator-discovery — testDir: ./sample/snapshots
-│       ├── global-setup.ts                    # walks projects[] and adb-grants Android perms
+│   ├── mobile/
+│   │   ├── mobilewright.config.ts             # regression suite — testDir: ./sample/tests
+│   │   ├── snapshots.config.ts                # locator-discovery — testDir: ./sample/snapshots
+│   │   ├── global-setup.ts                    # walks projects[] and adb-grants Android perms
+│   │   ├── utils/
+│   │   │   ├── aria.types.ts                  # MobileAriaRole union (mirrors ROLE_TYPE_MAP)
+│   │   │   └── mobile.utils.ts                # MobileUtils extends CoreUtils
+│   │   └── sample/
+│   │       ├── resources/
+│   │       │   ├── snapshots/                 # one <platform>_<state>.json per dumped screen (permanent — never delete)
+│   │       │   └── snapshot_history.json      # change log per snapshot file — feeds Auto-Healer strategy
+│   │       ├── screens/
+│   │       │   ├── ios/                       # iOS Contacts POMs (4 screens)
+│   │       │   └── android/                   # Android Contacts POMs (4 screens)
+│   │       ├── tests/                         # REGRESSION SUITE — discovered by mobilewright.config.ts
+│   │       │   ├── mobile_ios.spec.ts         # iOS suite (serial, add/edit/delete + 2 fixme)
+│   │       │   └── mobile_android.spec.ts     # Android suite (serial, add/edit/delete)
+│   │       └── snapshots/                     # LOCATOR-DISCOVERY TOOLING — discovered by snapshots.config.ts
+│   │           ├── _snapshots_ios.spec.ts     # iOS view-tree captures → resources/snapshots/
+│   │           └── _snapshots_android.spec.ts # Android view-tree captures → resources/snapshots/
+│   └── web/
+│       ├── playwright.config.ts               # 3-project matrix (chromium/firefox/webkit), testMatch: /_<browser>\.spec\.ts$/, baseURL: https://demo.playwright.dev, testDir: ./sample/tests
+│       ├── snapshots.config.ts                # locator-discovery — testDir: ./sample/snapshots, same 3-project matrix
 │       ├── utils/
-│       │   ├── aria.types.ts                  # MobileAriaRole union (mirrors ROLE_TYPE_MAP)
-│       │   └── mobile.utils.ts                # MobileUtils extends CoreUtils
+│       │   └── web.utils.ts                   # WebLocator (LocatorLike adapter) + WebPage (LocatorRoot bridge) + WebUtils extends CoreUtils
 │       └── sample/
 │           ├── resources/
-│           │   ├── snapshots/                 # one <platform>_<state>.json per dumped screen (permanent — never delete)
-│           │   └── snapshot_history.json      # change log per snapshot file — feeds Auto-Healer strategy
-│           ├── screens/
-│           │   ├── ios/                       # iOS Contacts POMs (4 screens)
-│           │   └── android/                   # Android Contacts POMs (4 screens)
-│           ├── tests/                         # REGRESSION SUITE — discovered by mobilewright.config.ts
-│           │   ├── mobile_ios.spec.ts         # iOS suite (serial, add/edit/delete + 2 fixme)
-│           │   └── mobile_android.spec.ts     # Android suite (serial, add/edit/delete)
+│           │   └── snapshots/                 # one <browser>_<state>.yaml + .png per captured screen (permanent — never delete)
+│           ├── screens/                        # web POMs — no browser subfolders (HTML is browser-agnostic)
+│           │   └── todo-list.screen.ts        # TodoListScreen (TodoMVC at demo.playwright.dev/todomvc)
+│           ├── tests/                         # REGRESSION SUITE — discovered by playwright.config.ts
+│           │   └── web_chromium.spec.ts       # TodoMVC suite (serial, add/complete/delete/filter)
 │           └── snapshots/                     # LOCATOR-DISCOVERY TOOLING — discovered by snapshots.config.ts
-│               ├── _snapshots_ios.spec.ts     # iOS view-tree captures → resources/snapshots/
-│               └── _snapshots_android.spec.ts # Android view-tree captures → resources/snapshots/
+│               └── _snapshots_chromium.spec.ts # aria-snapshot captures → resources/snapshots/
 ├── .claude/
 │   ├── commands/                      # project slash commands
 │   ├── skills/                        # project skills (allwright-reviewer)
@@ -121,14 +135,11 @@ Cross-surface uniformity via a shared `CoreUtils` base class. Manual QAs (eventu
 
 - `core/contracts/` — structural interfaces (`LocatorRoot`, `LocatorLike`, `WaitState`). Type-only; **no runtime imports** from `@mobilewright/*` or `@playwright/*`. Surface-neutral names: the entry point of the locator hierarchy is `LocatorRoot`, not `ScreenLike`/`PageLike` — `core/` deliberately avoids surface vocabulary.
 - `core/utils/core.utils.ts` — generic `CoreUtils<L extends LocatorLike, R extends LocatorRoot<L>>` exposing the operations common to every locator-based surface: locator finders (`getByText`, `getByTestId`, `getByPlaceholder`, `getByLabel`), primitive actions (`tap`/`fill`/`scrollIntoView`), queries (`isVisible`/`getText`/etc.), `waitFor`, collection (`first`/`last`/`nth`/`count`/`all`), `screenshot`. The protected field is `this.root` (not `this.screen`). **`getByRole` is deliberately NOT here** — ARIA role unions differ between mobile and web, so each surface declares its own `getByRole` with its own role type.
-- `apps/<surface>/utils/<surface>.utils.ts` — concrete subclass. Today only `apps/mobile/utils/mobile.utils.ts` exists: `class MobileUtils extends CoreUtils<Locator, Screen>` declares its own `getByRole(role: AriaRole, name?)` against the mobile-scoped role union (in `apps/mobile/utils/aria.types.ts`), and adds mobile-only primitives (swipe up/down/left/right, longPress, doubleTap, swipeElement, hardware buttons, coordinate tap, iOS `getByType`) plus the `expect*` assertion helpers wired to mobilewright's `expect`. The user-facing constructor param is named `screen` so test code reads naturally (`new MobileUtils(screen)`) — internally it's stored as `this.root`.
+- `apps/<surface>/utils/<surface>.utils.ts` — concrete subclass. Two exist today:
+  - `apps/mobile/utils/mobile.utils.ts`: `class MobileUtils extends CoreUtils<Locator, Screen>` declares its own `getByRole(role: AriaRole, name?)` against the mobile-scoped role union (in `apps/mobile/utils/aria.types.ts`), and adds mobile-only primitives (swipe up/down/left/right, longPress, doubleTap, swipeElement, hardware buttons, coordinate tap, iOS `getByType`). The user-facing constructor param is named `screen` so test code reads naturally (`new MobileUtils(screen)`) — internally it's stored as `this.root`.
+  - `apps/web/utils/web.utils.ts`: three classes in one file — `WebLocator` (implements `LocatorLike`, wraps Playwright `Locator`, exposes a public `.locator` field for `expect()` calls), an unexported `WebPage` (implements `LocatorRoot<WebLocator>`, bridges Playwright `Page`), and `class WebUtils extends CoreUtils<WebLocator, WebPage>`. There is no separate `aria.types.ts` for web — Playwright exports its own `AriaRole` type, inferred as `Parameters<Page['getByRole']>[0]`. Screen assertions use `expect(this.field.locator)`, not `expect(this.field)`, because `expect()` needs the raw Playwright `Locator`, not the `WebLocator` wrapper.
 
-**Adding a new surface (web):**
-1. Confirm the surface's root/locator types structurally satisfy `LocatorRoot<L>` / `LocatorLike`.
-2. Create `apps/<surface>/utils/aria.types.ts` with the surface-scoped `AriaRole` union (web's covers far more roles than mobile — link, heading, cell, row, dialog, tab, etc.).
-3. Create `apps/<surface>/utils/<surface>.utils.ts` extending `CoreUtils<SurfaceLocator, SurfaceRoot>` and declare `getByRole(role: AriaRole, name?)` against the surface's role union.
-4. Add surface-only primitives (web hover/dragAndDrop, etc.) as methods on the subclass.
-5. Mirror the `expect*` shape so the assertion surface stays uniform across surfaces.
+**Web surface (done):** `apps/web/utils/web.utils.ts` uses a three-class pattern in one file. `WebLocator` is a thin adapter: it implements `LocatorLike` by wrapping a Playwright `Locator` and exposing all required contract methods (`tap()` → `click()`, `getText()` → `innerText()`, `getValue()` → `inputValue()`, `isSelected`/`isFocused` via `evaluate()`). It also exposes a public `.locator` field so screen assertions can call `expect(this.field.locator).toBeVisible()` — Playwright's `expect()` needs the raw `Locator`, not the wrapper. An unexported `WebPage` class implements `LocatorRoot<WebLocator>` and bridges the Playwright `Page`. `WebUtils extends CoreUtils<WebLocator, WebPage>` then adds web-only primitives (click/dblClick/hover/clear/pressKey/selectOption/check/uncheck/dragTo, filter/getByRoleWithin/locatorWithin, goto/reload/goBack/goForward/waitForUrl, pressPageKey/typeText) and declares `getByRole` using Playwright's own role type inferred as `Parameters<Page['getByRole']>[0]`. No separate `aria.types.ts` is needed — Playwright exports its own union, and inferring it from the API keeps the two in sync automatically. No `global-setup.ts` is needed — there are no device permissions to grant. Snapshots are `.yaml` (from `locator.ariaSnapshot()`) + `.png`, not `.json`. Each snapshot test calls `page.goto()` independently because Playwright provides a fresh `Page` per test (unlike mobile where the app persists across serial tests). `screens/` has no browser subfolders — HTML is browser-agnostic, so one screen class serves all three browser projects.
 
 **API surface is a different shape.** `CoreUtils` assumes a locator-based UI model — REST has no locator tree. When the API surface lands, expect a **sibling abstraction**, not an extension: a separate `ApiClientLike` contract and an `ApiUtils` class that does **not** extend `CoreUtils`. The unified API at the *test-author* level will come from naming/method conventions (e.g. `expect*` parity), not class inheritance.
 
@@ -152,14 +163,14 @@ Avoid `snake_case` and `camelCase` filenames — they exist in the TS ecosystem 
 
 **Every screen object class follows the same shape:**
 
-- Class name `<Feature>Screen` (e.g. `ContactsListScreen`, `AddContactScreen`) — exported.
-- Constructor takes mobilewright `Screen`, instantiates `MobileUtils` internally as `private readonly utils`.
-- Locators: `private readonly <name>: Locator`, initialized in the constructor via `this.utils.getByX(...)`.
+- Class name `<Feature>Screen` (e.g. `ContactsListScreen`, `AddContactScreen`, `TodoListScreen`) — exported.
+- Constructor takes mobilewright `Screen` (mobile) or Playwright `Page` (web), instantiates `MobileUtils` / `WebUtils` internally as `private readonly utils`.
+- Locators on mobile: `private readonly <name>: Locator`, initialized in the constructor via `this.utils.getByX(...)`. Locators on web: `private readonly <name>: WebLocator`, same initialization pattern.
 - Every declared locator must be consumed by at least one method (TS will catch unused — and it caught a dead `dictateButton` once).
 - Action methods: **named-object params**, return `Promise<void>`, encapsulate the **full** flow (not partial steps). Never expose positional args.
-- Locator interaction goes through `this.utils.tap / fill / etc.` — never call mobilewright APIs directly.
-- Assertion helpers: `expectXxx(...)` using `this.utils.expectVisible / expectText / ...`.
-- Reference shape: `apps/mobile/sample/screens/contacts-list.screen.ts` and `apps/mobile/sample/screens/add-contact.screen.ts`.
+- Locator interaction goes through `this.utils.tap / fill / etc.` — never call mobilewright or Playwright APIs directly.
+- Assertions on mobile: `expect(locator)` wired via mobilewright's `expect`. Assertions on web: `expect(this.field.locator).toBeVisible()` — the `.locator` getter on `WebLocator` returns the raw Playwright `Locator` that Playwright's `expect()` requires. Do not pass the `WebLocator` wrapper directly to `expect()`.
+- Reference shape: `apps/mobile/sample/screens/contacts-list.screen.ts` and `apps/web/sample/screens/todo-list.screen.ts`.
 
 To build a new screen, invoke the `screen-builder` skill (manual mode — token-light).
 
@@ -169,7 +180,8 @@ To build a new screen, invoke the `screen-builder` skill (manual mode — token-
 |---|---|
 | `npm run test:mobile` | Regression suite (mobilewright.config.ts, testDir: `sample/tests`). |
 | `npm run test:mobile:snapshots` | Locator-discovery captures (snapshots.config.ts, testDir: `sample/snapshots`). Run with `-- --project=<ios\|android>` to scope. |
-| `npm run test:web` | Stub — exits with error until web surface is scaffolded. |
+| `npm run test:web` | Playwright regression suite (`playwright.config.ts`, testDir: `apps/web/sample/tests`). 3 browser projects (chromium/firefox/webkit). |
+| `npm run test:web:snapshots` | Accessibility-tree captures (`apps/web/snapshots.config.ts`, testDir: `apps/web/sample/snapshots`). Pass `-- --project=<chromium\|firefox\|webkit>` to scope. |
 | `npm run test:api` | Stub — exits with error until API surface is scaffolded. |
 | `npm test` | Alias for `test:mobile` (only working surface today). |
 
@@ -206,6 +218,8 @@ Project-specific commands live in `.claude/commands/`. Files are **grouped by to
 | `/xcode:setup` | Xcode version → list simulators → boot iPhone 17 Pro Max → `open -a Simulator` |
 | `/mobile:test` | `npm run test:mobile -- $ARGUMENTS` |
 | `/mobile:snapshot` | `npm run test:mobile:snapshots -- $ARGUMENTS` (pass `--project=ios\|android`) |
+| `/web:test` | `npm run test:web -- $ARGUMENTS` |
+| `/web:snapshot` | `npm run test:web:snapshots -- $ARGUMENTS` (pass `--project=chromium\|firefox\|webkit`) |
 | `/device:list` | `mobilewright devices` — all simulators/emulators and their state |
 | `/device:boot` | `xcrun simctl boot "$ARGUMENTS" && open -a Simulator` |
 | `/debug:doctor` | `mobilewright doctor $ARGUMENTS` — env health check (`--category ios\|android\|system`) |
