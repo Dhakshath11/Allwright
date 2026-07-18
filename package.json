@@ -8,7 +8,7 @@
     "test:mobile:snapshots": "mobilewright test --config apps/mobile/snapshots.config.ts",
     "test:web": "playwright test --config apps/web/playwright.config.ts",
     "test:web:snapshots": "playwright test --config apps/web/snapshots.config.ts",
-    "test:api": "echo \"api suite not yet scaffolded\" && exit 1",
+    "test:api": "playwright test --config apps/api/playwright.config.ts",
     "test": "npm run test:mobile"
   },
   "devDependencies": {

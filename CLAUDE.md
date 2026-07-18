@@ -106,20 +106,34 @@ Allwright/
 │   │       └── snapshots/                     # LOCATOR-DISCOVERY TOOLING — discovered by snapshots.config.ts
 │   │           ├── _snapshots_ios.spec.ts     # iOS view-tree captures → resources/snapshots/
 │   │           └── _snapshots_android.spec.ts # Android view-tree captures → resources/snapshots/
-│   └── web/
-│       ├── playwright.config.ts               # 3-project matrix (chromium/firefox/webkit), testMatch: /_<browser>\.spec\.ts$/, baseURL: https://demo.playwright.dev, testDir: ./sample/tests
-│       ├── snapshots.config.ts                # locator-discovery — testDir: ./sample/snapshots, same 3-project matrix
+│   ├── web/
+│   │   ├── playwright.config.ts               # 3-project matrix (chromium/firefox/webkit), testMatch: /_<browser>\.spec\.ts$/, baseURL: https://demo.playwright.dev, testDir: ./sample/tests
+│   │   ├── snapshots.config.ts                # locator-discovery — testDir: ./sample/snapshots, same 3-project matrix
+│   │   ├── utils/
+│   │   │   └── web.utils.ts                   # WebLocator (LocatorLike adapter) + WebPage (LocatorRoot bridge) + WebUtils extends CoreUtils
+│   │   └── sample/
+│   │       ├── resources/
+│   │       │   └── snapshots/                 # one <browser>_<state>.yaml + .png per captured screen (permanent — never delete)
+│   │       ├── screens/                        # web POMs — no browser subfolders (HTML is browser-agnostic)
+│   │       │   └── todo-list.screen.ts        # TodoListScreen (TodoMVC at demo.playwright.dev/todomvc)
+│   │       ├── tests/                         # REGRESSION SUITE — discovered by playwright.config.ts
+│   │       │   └── web_chromium.spec.ts       # TodoMVC suite (serial, add/complete/delete/filter)
+│   │       └── snapshots/                     # LOCATOR-DISCOVERY TOOLING — discovered by snapshots.config.ts
+│   │           └── _snapshots_chromium.spec.ts # aria-snapshot captures → resources/snapshots/
+│   └── api/
+│       ├── playwright.config.ts               # single 'api' project, testMatch: /_api\.spec\.ts$/, baseURL: env API_BASE_URL (default: https://jsonplaceholder.typicode.com)
+│       ├── fixtures/
+│       │   └── api.fixture.ts                 # re-exports Playwright test + expect; extend here to inject service clients
+│       ├── clients/
+│       │   └── base-api.client.ts             # BaseApiClient — protected get/post/put/patch/delete wrapping APIRequestContext
+│       ├── models/
+│       │   ├── request/index.ts               # request interfaces (UserRequest, LoginRequest, …)
+│       │   └── response/index.ts              # response interfaces (UserResponse, LoginResponse, …)
 │       ├── utils/
-│       │   └── web.utils.ts                   # WebLocator (LocatorLike adapter) + WebPage (LocatorRoot bridge) + WebUtils extends CoreUtils
+│       │   └── api.utils.ts                   # assertStatus / assertOk / json<T> / assertBodyContains
 │       └── sample/
-│           ├── resources/
-│           │   └── snapshots/                 # one <browser>_<state>.yaml + .png per captured screen (permanent — never delete)
-│           ├── screens/                        # web POMs — no browser subfolders (HTML is browser-agnostic)
-│           │   └── todo-list.screen.ts        # TodoListScreen (TodoMVC at demo.playwright.dev/todomvc)
-│           ├── tests/                         # REGRESSION SUITE — discovered by playwright.config.ts
-│           │   └── web_chromium.spec.ts       # TodoMVC suite (serial, add/complete/delete/filter)
-│           └── snapshots/                     # LOCATOR-DISCOVERY TOOLING — discovered by snapshots.config.ts
-│               └── _snapshots_chromium.spec.ts # aria-snapshot captures → resources/snapshots/
+│           └── tests/
+│               └── sample_api.spec.ts         # 3-test sample against reqres.in (GET list, GET single, POST create)
 ├── .claude/
 │   ├── commands/                      # project slash commands
 │   ├── skills/                        # project skills (allwright-reviewer)
@@ -141,7 +155,12 @@ Cross-surface uniformity via a shared `CoreUtils` base class. Manual QAs (eventu
 
 **Web surface (done):** `apps/web/utils/web.utils.ts` uses a three-class pattern in one file. `WebLocator` is a thin adapter: it implements `LocatorLike` by wrapping a Playwright `Locator` and exposing all required contract methods (`tap()` → `click()`, `getText()` → `innerText()`, `getValue()` → `inputValue()`, `isSelected`/`isFocused` via `evaluate()`). It also exposes a public `.locator` field so screen assertions can call `expect(this.field.locator).toBeVisible()` — Playwright's `expect()` needs the raw `Locator`, not the wrapper. An unexported `WebPage` class implements `LocatorRoot<WebLocator>` and bridges the Playwright `Page`. `WebUtils extends CoreUtils<WebLocator, WebPage>` then adds web-only primitives (click/dblClick/hover/clear/pressKey/selectOption/check/uncheck/dragTo, filter/getByRoleWithin/locatorWithin, goto/reload/goBack/goForward/waitForUrl, pressPageKey/typeText) and declares `getByRole` using Playwright's own role type inferred as `Parameters<Page['getByRole']>[0]`. No separate `aria.types.ts` is needed — Playwright exports its own union, and inferring it from the API keeps the two in sync automatically. No `global-setup.ts` is needed — there are no device permissions to grant. Snapshots are `.yaml` (from `locator.ariaSnapshot()`) + `.png`, not `.json`. Each snapshot test calls `page.goto()` independently because Playwright provides a fresh `Page` per test (unlike mobile where the app persists across serial tests). `screens/` has no browser subfolders — HTML is browser-agnostic, so one screen class serves all three browser projects.
 
-**API surface is a different shape.** `CoreUtils` assumes a locator-based UI model — REST has no locator tree. When the API surface lands, expect a **sibling abstraction**, not an extension: a separate `ApiClientLike` contract and an `ApiUtils` class that does **not** extend `CoreUtils`. The unified API at the *test-author* level will come from naming/method conventions (e.g. `expect*` parity), not class inheritance.
+**API surface is a sibling abstraction, not an extension of `CoreUtils`.** REST has no locator tree, so `CoreUtils` does not apply. The API surface uses three layers:
+- `clients/base-api.client.ts` — `BaseApiClient` wraps `APIRequestContext` with protected `get/post/put/patch/delete` methods. Service-specific clients (e.g. `UserApiClient`) extend this and expose domain methods. Tests never call `request.get/post` directly — they go through a client.
+- `fixtures/api.fixture.ts` — extends Playwright's base `test` to inject client instances as fixtures. The `request` built-in (Playwright's `APIRequestContext`) is always available; additional client fixtures are added here as services are onboarded.
+- `utils/api.utils.ts` — module-level helper functions (`assertStatus`, `assertOk`, `json<T>`, `assertBodyContains`). These are NOT class methods and NOT `expect*` wrappers on a utils class — module functions keep call-site stack frames in Playwright's HTML report. The assertion functions add meaningful messages (URL + actual status) that bare `expect(res.status()).toBe(200)` cannot.
+
+No `CoreUtils` inheritance. No `LocatorLike`/`LocatorRoot` contracts. No screen objects or snapshots.
 
 **Don't:** import `@mobilewright/*` or surface-specific types into `core/`. Don't put mobile-only methods (gestures, hardware buttons) into `CoreUtils`. Don't reintroduce "screen"/"page" terminology in `core/` — use `root`.
 
@@ -182,7 +201,7 @@ To build a new screen, invoke the `screen-builder` skill (manual mode — token-
 | `npm run test:mobile:snapshots` | Locator-discovery captures (snapshots.config.ts, testDir: `sample/snapshots`). Run with `-- --project=<ios\|android>` to scope. |
 | `npm run test:web` | Playwright regression suite (`playwright.config.ts`, testDir: `apps/web/sample/tests`). 3 browser projects (chromium/firefox/webkit). |
 | `npm run test:web:snapshots` | Accessibility-tree captures (`apps/web/snapshots.config.ts`, testDir: `apps/web/sample/snapshots`). Pass `-- --project=<chromium\|firefox\|webkit>` to scope. |
-| `npm run test:api` | Stub — exits with error until API surface is scaffolded. |
+| `npm run test:api` | Playwright API suite (`apps/api/playwright.config.ts`, testDir: `apps/api/sample/tests`). Single 'api' project; picks up `*_api.spec.ts` files. Set `API_BASE_URL` env var to override the default base URL (jsonplaceholder.typicode.com). |
 | `npm test` | Alias for `test:mobile` (only working surface today). |
 
 The `--config <path>` flag works from any cwd as of mobilewright 0.0.44 (earlier versions had a cwd-dependent loader bug that produced `Unsupported platform: "undefined"`). Relative paths inside the config — `globalSetup: './global-setup.ts'`, `testDir`, etc. — resolve against the config file's directory.
