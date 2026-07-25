@@ -1,5 +1,5 @@
 import { test as base } from '@playwright/test';
-import { UserApiClient } from '../clients/user-api.client.js';
+import { UserApiClient } from '../clients/user-api.client';
 
 // All API specs import { test, expect } from this module — never directly
 // from @playwright/test. That gives us one place to inject client fixtures

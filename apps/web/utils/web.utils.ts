@@ -46,13 +46,16 @@ export class WebLocator implements LocatorLike {
   async isChecked(): Promise<boolean> { return this.locator.isChecked(); }
 
   async isSelected(): Promise<boolean> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return this.locator.evaluate(el => (el as any).getAttribute('aria-selected') === 'true');
+    return (await this.locator.getAttribute('aria-selected')) === 'true';
   }
 
   async isFocused(): Promise<boolean> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return this.locator.evaluate(el => el === (el as any).ownerDocument?.activeElement);
+    try {
+      await expect(this.locator).toBeFocused({ timeout: 0 });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async getText(): Promise<string> {
