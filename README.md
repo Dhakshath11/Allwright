@@ -4,7 +4,7 @@
 
 Allwright integrates **Playwright** (web), **Mobilewright** (mobile), and a planned REST client (API) behind a single facade so test authors learn one vocabulary regardless of the surface under test. The long-term goal is a **prompt-driven QA product** where manual testers describe tests in plain English and an LLM composes runnable code against Allwright's primitives.
 
-**Status:** early-stage development. Mobile surface is scaffolded and runs the iOS Contacts app as a smoke test. Web surface is scaffolded and runs TodoMVC as a smoke test. API surface not yet started.
+**Status:** early-stage development. Mobile surface is scaffolded and runs the iOS Contacts app as a smoke test. Web surface is scaffolded and runs TodoMVC as a smoke test. API surface is scaffolded with both direct `request`-based tests and `BaseApiClient`-driven client tests.
 
 ---
 
@@ -37,7 +37,9 @@ The smoke test launches the iOS **Contacts** app, taps **Add**, fills a sample c
 | `npm run test:mobile:snapshots` | Locator-discovery captures under `apps/mobile/sample/snapshots/`. Pass `-- --project=<ios\|android>` to scope. |
 | `npm run test:web`    | Playwright regression suite under `apps/web/sample/tests/`. Runs 3 browser projects (chromium/firefox/webkit). |
 | `npm run test:web:snapshots` | Accessibility-tree captures under `apps/web/sample/snapshots/`. Pass `-- --project=<chromium\|firefox\|webkit>` to scope. |
-| `npm run test:api`    | *(stub — exits non-zero until API surface is scaffolded)* |
+| `npm run test:api`    | Playwright API suite under `apps/api/sample/tests/` (matches `*_api.spec.ts`). |
+| `npm run test:api:sample` | Runs direct `request`-fixture sample spec (`sample_api.spec.ts`). |
+| `npm run test:api:client` | Runs client-fixture sample spec (`users_client_api.spec.ts`) that uses `UserApiClient` extending `BaseApiClient`. |
 | `npm test`            | Alias for `test:mobile` (only working surface today) |
 | `npm run lint`        | ESLint over the repo (type-aware via `typescript-eslint/recommended-type-checked`) |
 | `npm run lint:fix`    | ESLint with `--fix` |
@@ -91,6 +93,45 @@ projects: [
 ## Architecture in one paragraph
 
 `core/` holds surface-agnostic contracts (`LocatorRoot`, `LocatorLike`) and a generic `CoreUtils<L, R>` facade — **no mobilewright/playwright imports**. Each surface lives under `apps/<surface>/` and provides a concrete subclass that adds surface-only primitives. Today `MobileUtils extends CoreUtils<Locator, Screen>` and `WebUtils extends CoreUtils<WebLocator, WebPage>` — `WebLocator` is a thin adapter that bridges Playwright's `Locator` to the `LocatorLike` contract. Test authors only ever import the surface util — the `core/` layer stays invisible. Full architectural rationale lives in [`CLAUDE.md`](./CLAUDE.md).
+
+## API wiring (request fixture vs client fixture)
+
+The API surface supports two valid testing styles side by side:
+
+1. **Direct request style** (existing sample):
+   - File: `apps/api/sample/tests/sample_api.spec.ts`
+   - Test callback destructures `{ request }`
+   - Calls `request.get(...)` / `request.post(...)` directly.
+
+2. **Client style built on `BaseApiClient`** (new sample):
+   - File: `apps/api/sample/tests/users_client_api.spec.ts`
+   - Test callback destructures `{ userClient }`
+   - Calls `userClient.listUsers()` / `userClient.getUserById()` / `userClient.createUser(...)`.
+
+How the wiring works:
+
+- `apps/api/fixtures/api.fixture.ts` extends Playwright's base `test` and registers `userClient`:
+  - `userClient: async ({ request }, use) => { await use(new UserApiClient(request)); }`
+- Playwright injects built-in `request` (`APIRequestContext`) into the fixture factory.
+- The fixture factory constructs `new UserApiClient(request)`.
+- `UserApiClient` extends `BaseApiClient`, so it inherits protected HTTP helpers (`get/post/put/patch/delete`).
+- `BaseApiClient` stores the same `request` instance in its constructor:
+  - `constructor(protected readonly request: APIRequestContext) {}`
+- Because fixture extension is additive, built-in `request` remains available; existing tests are not broken.
+
+Minimal flow:
+
+```ts
+test('client style', async ({ userClient }) => {
+  const res = await userClient.listUsers();
+});
+```
+
+```ts
+test('request style', async ({ request }) => {
+  const res = await request.get('/users');
+});
+```
 
 `MobileUtils` swipe API (all screen-level swipes use `device.io.swipe` which has no `duration` support — omitted by design):
 

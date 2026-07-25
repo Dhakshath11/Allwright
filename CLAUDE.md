@@ -123,9 +123,10 @@ Allwright/
 │   └── api/
 │       ├── playwright.config.ts               # single 'api' project, testMatch: /_api\.spec\.ts$/, baseURL: env API_BASE_URL (default: https://jsonplaceholder.typicode.com)
 │       ├── fixtures/
-│       │   └── api.fixture.ts                 # re-exports Playwright test + expect; extend here to inject service clients
+│       │   └── api.fixture.ts                 # extends Playwright test with userClient fixture (request is still available)
 │       ├── clients/
-│       │   └── base-api.client.ts             # BaseApiClient — protected get/post/put/patch/delete wrapping APIRequestContext
+│       │   ├── base-api.client.ts             # BaseApiClient — protected get/post/put/patch/delete wrapping APIRequestContext
+│       │   └── user-api.client.ts             # UserApiClient extends BaseApiClient (list/get/create users)
 │       ├── models/
 │       │   ├── request/index.ts               # request interfaces (UserRequest, LoginRequest, …)
 │       │   └── response/index.ts              # response interfaces (UserResponse, LoginResponse, …)
@@ -133,7 +134,8 @@ Allwright/
 │       │   └── api.utils.ts                   # assertStatus / assertOk / json<T> / assertBodyContains
 │       └── sample/
 │           └── tests/
-│               └── sample_api.spec.ts         # 3-test sample against reqres.in (GET list, GET single, POST create)
+│               ├── sample_api.spec.ts         # direct request-fixture sample (GET/POST against /users)
+│               └── users_client_api.spec.ts   # client-fixture sample using UserApiClient
 ├── .claude/
 │   ├── commands/                      # project slash commands
 │   ├── skills/                        # project skills (allwright-reviewer)
@@ -157,7 +159,8 @@ Cross-surface uniformity via a shared `CoreUtils` base class. Manual QAs (eventu
 
 **API surface is a sibling abstraction, not an extension of `CoreUtils`.** REST has no locator tree, so `CoreUtils` does not apply. The API surface uses three layers:
 - `clients/base-api.client.ts` — `BaseApiClient` wraps `APIRequestContext` with protected `get/post/put/patch/delete` methods. Service-specific clients (e.g. `UserApiClient`) extend this and expose domain methods. Tests never call `request.get/post` directly — they go through a client.
-- `fixtures/api.fixture.ts` — extends Playwright's base `test` to inject client instances as fixtures. The `request` built-in (Playwright's `APIRequestContext`) is always available; additional client fixtures are added here as services are onboarded.
+- `clients/user-api.client.ts` — concrete client extending `BaseApiClient` with user-domain methods (`listUsers`, `getUserById`, `createUser`).
+- `fixtures/api.fixture.ts` — extends Playwright's base `test` to inject client instances as fixtures. The `request` built-in (Playwright's `APIRequestContext`) remains available, so both direct-request and client-based specs can coexist.
 - `utils/api.utils.ts` — module-level helper functions (`assertStatus`, `assertOk`, `json<T>`, `assertBodyContains`). These are NOT class methods and NOT `expect*` wrappers on a utils class — module functions keep call-site stack frames in Playwright's HTML report. The assertion functions add meaningful messages (URL + actual status) that bare `expect(res.status()).toBe(200)` cannot.
 
 No `CoreUtils` inheritance. No `LocatorLike`/`LocatorRoot` contracts. No screen objects or snapshots.

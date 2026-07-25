@@ -48,7 +48,7 @@ test.describe('Users API', () => {
     const res = await request.post('/users', {
       data: {
         name: 'Allwright Bot',
-        username: 'allwright'
+        username: 'allwright',
       },
     });
 

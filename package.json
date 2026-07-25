@@ -9,6 +9,8 @@
     "test:web": "playwright test --config apps/web/playwright.config.ts",
     "test:web:snapshots": "playwright test --config apps/web/snapshots.config.ts",
     "test:api": "playwright test --config apps/api/playwright.config.ts",
+    "test:api:sample": "playwright test --config apps/api/playwright.config.ts apps/api/sample/tests/sample_api.spec.ts",
+    "test:api:client": "playwright test --config apps/api/playwright.config.ts apps/api/sample/tests/users_client_api.spec.ts",
     "test": "npm run test:mobile"
   },
   "devDependencies": {

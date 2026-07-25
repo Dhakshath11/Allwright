@@ -34,7 +34,7 @@ export class PlaygroundPermissionsAlertScreen {
   }
 
   async tapDontAllow(): Promise<void> {
-    await test.step("Tap Don't Allow on camera permission alert", async () => {
+    await test.step('Tap Don\'t Allow on camera permission alert', async () => {
       await this.utils.tap(this.dontAllowButton);
     });
   }

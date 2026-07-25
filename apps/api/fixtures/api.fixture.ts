@@ -1,4 +1,5 @@
 import { test as base } from '@playwright/test';
+import { UserApiClient } from '../clients/user-api.client.js';
 
 // All API specs import { test, expect } from this module — never directly
 // from @playwright/test. That gives us one place to inject client fixtures
@@ -16,5 +17,14 @@ import { test as base } from '@playwright/test';
 // The `request` fixture (Playwright's built-in APIRequestContext) is always
 // available too — use it for one-off requests that don't warrant a full client.
 
-export const test = base;
+type ApiFixtures = {
+  userClient: UserApiClient;
+};
+
+export const test = base.extend<ApiFixtures>({
+  userClient: async ({ request }, use) => {
+    await use(new UserApiClient(request));
+  },
+});
+
 export { expect } from '@playwright/test';

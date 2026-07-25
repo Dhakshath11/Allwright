@@ -29,12 +29,12 @@ export class CoreUtils<
   // their surface-specific finders (getByRole, getByType) in the same map.
 
   protected describe(locator: L, description: string): L {
-    this._locatorDescriptions.set(locator as object, description);
+    this._locatorDescriptions.set(locator, description);
     return locator;
   }
 
   protected descriptionOf(locator: L): string {
-    return this._locatorDescriptions.get(locator as object) ?? '<unknown locator>';
+    return this._locatorDescriptions.get(locator) ?? '<unknown locator>';
   }
 
   // ─── Locator finding ─────────────────────────────────────────────────────

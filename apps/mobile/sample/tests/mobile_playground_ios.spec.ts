@@ -201,7 +201,7 @@ test.describe('iOS Playground — Permissions And Alerts', () => {
     // iOS system alerts persist across app termination — tapping Don't Allow is
     // the only reliable way to clear them. Silently skip if no alert is present.
     const utils = new MobileUtils(screen);
-    await utils.tap(utils.getByRole('button', "Don't Allow")).catch(() => {});
+    await utils.tap(utils.getByRole('button', 'Don\'t Allow')).catch(() => {});
     await sleep(500);
     // Uninstall + reinstall to guarantee "Not Determined" permission state.
     // terminateApp alone is not enough — iOS caches permission state across launches.
