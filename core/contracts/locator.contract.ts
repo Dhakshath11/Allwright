@@ -1,5 +1,16 @@
 export type WaitState = 'visible' | 'hidden' | 'enabled' | 'disabled';
 
+export interface SmartLocatorCandidate<L extends LocatorLike = LocatorLike> {
+  description: string;
+  resolve: () => L;
+}
+
+export interface SmartLocatorResolution {
+  succeeded: boolean;
+  selectedCandidate?: string;
+  failedCandidates: string[];
+}
+
 export interface LocatorLike {
   // Actions
   tap(): Promise<void>;
