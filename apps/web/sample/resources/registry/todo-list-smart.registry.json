@@ -1,0 +1,126 @@
+{
+  "elements": [
+    {
+      "id": "newTodoInput",
+      "semanticSnapshot": {
+        "role": "textbox",
+        "name": "What needs to be done?",
+        "text": "What needs to be done?",
+        "tag": "input",
+        "parent": "todo-root",
+        "neighbors": ["todoItems"]
+      },
+      "preferredLocator": {
+        "kind": "role",
+        "role": "textbox",
+        "name": "What needs to be done?"
+      },
+      "fallbackLocators": [
+        {
+          "kind": "placeholder",
+          "value": "What needs to be done?"
+        },
+        {
+          "kind": "css",
+          "value": "input.new-todo"
+        }
+      ],
+      "history": [
+        {
+          "preferredLocator": {
+            "kind": "css",
+            "value": "input.new-todo"
+          },
+          "fallbackLocators": []
+        },
+        {
+          "preferredLocator": {
+            "kind": "placeholder",
+            "value": "What needs to be done?"
+          },
+          "fallbackLocators": [
+            {
+              "kind": "css",
+              "value": "input.new-todo"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "newTodoInputHealed",
+      "semanticSnapshot": {
+        "role": "textbox",
+        "name": "What needs to be done?",
+        "text": "What needs to be done?",
+        "tag": "input",
+        "parent": "todo-root",
+        "neighbors": ["todoItems"]
+      },
+      "preferredLocator": {
+        "kind": "testId",
+        "value": "new-todo-input"
+      },
+      "fallbackLocators": [
+        {
+          "kind": "css",
+          "value": "input.todo-input-v2"
+        }
+      ],
+      "history": [
+        {
+          "preferredLocator": {
+            "kind": "placeholder",
+            "value": "What needs to be done?"
+          },
+          "fallbackLocators": []
+        },
+        {
+          "preferredLocator": {
+            "kind": "css",
+            "value": "input.new-todo"
+          },
+          "fallbackLocators": []
+        }
+      ]
+    },
+    {
+      "id": "todoItems",
+      "semanticSnapshot": {
+        "role": "listitem",
+        "name": "todo-item",
+        "text": "",
+        "tag": "li",
+        "parent": "todo-list",
+        "neighbors": []
+      },
+      "preferredLocator": {
+        "kind": "testId",
+        "value": "todo-item"
+      },
+      "fallbackLocators": [
+        {
+          "kind": "css",
+          "value": "ul.todo-list li"
+        }
+      ],
+      "history": [
+        {
+          "preferredLocator": {
+            "kind": "css",
+            "value": "ul.todo-list li"
+          },
+          "fallbackLocators": []
+        },
+        {
+          "preferredLocator": {
+            "kind": "css",
+            "value": "ul li"
+          },
+          "fallbackLocators": []
+        }
+      ]
+    }
+  ]
+}
+

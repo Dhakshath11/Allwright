@@ -6,6 +6,8 @@ package-lock.json
 playwright-report/
 test-results/
 mobilewright-report/
+apps/web/sample/resources/smart-reports/
+apps/web/sample/resources/smart-snapshots/
 
 graphify-out
 **/screenshots

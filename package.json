@@ -4,9 +4,11 @@
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "lint:registry": "jiti scripts/lint-smart-registries.ts",
     "test:mobile": "mobilewright test --config apps/mobile/mobilewright.config.ts",
     "test:mobile:snapshots": "mobilewright test --config apps/mobile/snapshots.config.ts",
     "test:web": "playwright test --config apps/web/playwright.config.ts",
+    "test:web:smart": "playwright test --headed --config apps/web/playwright.config.ts apps/web/sample/tests/web_smart_chromium.spec.ts --project=chromium",
     "test:web:snapshots": "playwright test --config apps/web/snapshots.config.ts",
     "test:api": "playwright test --config apps/api/playwright.config.ts",
     "test:api:sample": "playwright test --config apps/api/playwright.config.ts apps/api/sample/tests/sample_api.spec.ts",

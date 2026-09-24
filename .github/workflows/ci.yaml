@@ -34,8 +34,10 @@ jobs:
         run: npm ci
 
       - name: Run lint
-        run: npm run lint
-
+        run: |
+          npm run lint
+          npm run lint:registry
+ 
   security-scan:
     runs-on: ubuntu-latest
 
