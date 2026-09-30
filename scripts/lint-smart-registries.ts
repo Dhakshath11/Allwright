@@ -66,7 +66,7 @@ const run = (): void => {
 
   // Checked once across all files, not per-file — one error anywhere fails the whole run.
   if (hasError) {
-    console.error('\n[registry-lint] FAILED: one or more elements have a lower-priority locator as preferred without a priorityOverrideReason.');
+    console.error('\n[registry-lint] FAILED: one or more elements have a lower-priority locator as preferred.');
     process.exit(1);
   }
 

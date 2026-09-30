@@ -30,10 +30,10 @@ Every method, type, and business rule described below exists in the repository t
 ## 1. Objective & design philosophy
 
 **Problem this framework solves:** UI locators break when the DOM changes (renamed ids, restructured
-markup, reworded labels). Traditional automation either hard-fails immediately or "self-heals"
-silently in ways nobody can audit — both are bad for a QA framework other people are expected to
-trust, and especially bad for the [prompt-driven QA end goal](../../CLAUDE.md#end-goal--prompt-driven-qa):
-an LLM composing tests needs deterministic, explainable behavior, not a black box.
+markup, reworded labels). Traditional automation typically hard-fails immediately — bad for a QA
+framework other people are expected to trust, and especially bad for the
+[prompt-driven QA end goal](../../CLAUDE.md#end-goal--prompt-driven-qa): an LLM composing tests needs
+deterministic, explainable behavior, not a black box.
 
 **Design philosophy — deterministic execution first, AI-assisted recovery second, never silent:**
 
@@ -85,7 +85,7 @@ everything else (including unset) as `false`.
 | Flag | Function | Gates |
 |---|---|---|
 | `SMART_LOCATOR` | `isSmartLocatorEnabled()` | Master switch. When `false`, `SmartWebUtils.getByElementId()` still returns a `SmartWebLocator`, but it is built with `fallbackLocators: []` and **no** `healingResolver` — only `preferredLocator` is ever tried, and a miss throws immediately with no healing/suggestion attempt at all. |
-| `SMART_SNAPSHOT_CAPTURE` | `isSmartSnapshotCaptureEnabled()` | Independent of the above. Only controls whether `captureAndStoreSnapshotGraph` runs during `goto()` and during a healing attempt. Never gates whether healing logic itself runs — it only gates the extra DOM/aria evidence capture. |
+| `SMART_SNAPSHOT_CAPTURE` | `isSmartSnapshotCaptureEnabled()` | Independent of the above. Only controls whether `captureAndStoreSnapshotGraph` runs during `goto()` and during a healing attempt. Never gates whether healing logic itself runs — it only gates the extra DOM/aria evidence capture. **Purpose:** to capture evidence of how the DOM/page looked like — mainly done during `goto()` and auto-healing. |
 
 Both flags are read fresh on every call (no caching), so tests can flip them per-`beforeEach` — which
 is exactly what `web_smart_chromium.spec.ts` does, setting both to `'true'` before every test.
@@ -108,7 +108,6 @@ SmartRegistry
       │     ├─ tag: string
       │     ├─ parent?: string        ← nearest ancestor's data-testid, boost-only
       │     └─ neighbors?: string[]   ← sibling elements' registry profile ids, boost-only
-      ├─ priorityOverrideReason?: string   ← justifies a preferredLocator that ranks below a fallback
       └─ extends SmartElementVersion:
             ├─ preferredLocator: SmartLocatorStrategy    ← current version (top level of the profile)
             ├─ fallbackLocators: SmartLocatorStrategy[]  ← current version (top level of the profile)
@@ -179,15 +178,22 @@ time, only once an action (`fill`/`tap`/…) later calls `SmartWebLocator`'s pri
 ## 7. Resolution flow — `SmartWebLocator.resolve()`
 
 This is the method every action wrapper (`fill`, `tap`, `getText`, `count`, …) funnels through. It is
-a strict cascade — each stage only runs if the previous one produced zero matches.
+a strict cascade — each stage only runs if the previous one produced zero matches. The diagram below
+also makes explicit the upstream `SMART_LOCATOR` branch from `getByElementId()` that decides what
+`resolve()` even has to work with, before it's ever called.
 
 ```mermaid
 flowchart TD
-    Start(["resolve(action) called"]) --> Loop{"For each candidate\n(preferred, then fallback#1, #2, ...)"}
+    Flag{"SMART_LOCATOR flag on?\n(checked once, in getByElementId(),\nbefore resolve() is ever called)"}
+    Flag -->|"no"| BuildOff["candidates = [preferred] only\nhealingResolver = undefined"]
+    Flag -->|"yes"| BuildOn["candidates = [preferred, fallback#1, #2, ...]\nhealingResolver = closure (see §8.1)"]
+    BuildOff --> Start(["resolve(action) called"])
+    BuildOn --> Start
+    Start --> Loop{"For each candidate\n(preferred, then fallback#1, #2, ... if any)"}
     Loop -->|"count() > 0"| Found["Return resolved WebLocator\n(warn + report annotation if it wasn't the first candidate)"]
     Loop -->|"count() === 0"| Next["Record description as failed, try next candidate"]
     Next --> Loop
-    Loop -->|"all candidates exhausted"| HasResolver{"healingResolver\nprovided?\n(SMART_LOCATOR flag on)"}
+    Loop -->|"all candidates exhausted"| HasResolver{"healingResolver\nprovided?"}
     HasResolver -->|"no"| ThrowNoHeal["throw LocatorActionError\n(no suggestion)"]
     HasResolver -->|"yes"| Heal["await healingResolver({action, failedCandidates})\n— see §8"]
     Heal -->|"succeeded: true"| ReturnHealed["Return healed WebLocator\nwarn + report annotation (tier + score)"]
@@ -199,6 +205,11 @@ flowchart TD
 
 Key implementation notes:
 
+- `SMART_LOCATOR` off means the candidate list arriving at this diagram's `Loop` box already has
+  fallback strategies stripped (the `Flag` → `BuildOff` path above) — this isn't something
+  `resolve()` checks itself, it's a consequence of what `getByElementId()` built before `resolve()`
+  was ever called. `BuildOff` also means `HasResolver` always takes the `no` path, since
+  `healingResolver` was never passed in the first place.
 - The candidate loop lives in `SmartWebLocator['resolve']` (private). Every public action
   (`tap`/`fill`/`getText`/`isVisible`/`count`/…) is a one-line wrapper: `(await this.resolve('fill')).fill(text)`.
 - `first()`/`last()`/`nth(index)` don't resolve anything themselves — they return a **new**
@@ -211,10 +222,82 @@ Key implementation notes:
 - On total failure, the thrown `LocatorActionError` always carries `failedCandidates` (as a
   JSON-stringified `SmartLocatorResolution` inside `cause`) and, if the healing resolver ran, whatever
   `suggestion` it produced (see §12).
+- Every action call runs this **entire** cascade independently, from scratch, starting back at
+  `this.candidates[0]` — nothing is cached between calls. Two consecutive calls on the same
+  `SmartWebLocator` (e.g. `fill()` immediately followed by `pressKey()` in a screen's `addTodo()`
+  method) each re-resolve fully, so the second call always acts on whatever the DOM looks like *after*
+  the first call ran, never on a potentially stale reference from before it.
+
+### 7.1 The `build` → `resolve` handoff, traced
+
+`this.candidates` entries have a `resolve` property, but nothing named `resolve` is ever *written* at
+the call site that constructs them — it's a **property rename that happens once, in the constructor**:
+
+```ts
+// buildSmartLocatorFromProfile (smart-locator.utils.ts) — creates the ORIGINAL closures, keyed "build":
+const allCandidates = [
+  { description: `preferred:${profile.id}`, build: () => locatorFromStrategy(page, profile.preferredLocator) },
+  ...profile.fallbackLocators.map((strategy, index) => ({
+    description: `fallback#${index + 1}:${profile.id}`,
+    build: () => locatorFromStrategy(page, strategy),
+  })),
+];
+return new SmartWebLocator(profile.id, allCandidates, healingResolver);
+
+// SmartWebLocator constructor — renames "build" to "resolve", nothing else:
+constructor(
+  private readonly id: string,
+  candidateBuilders: Array<{ description: string; build: CandidateLocatorBuilder }>,
+  private readonly healingResolver?: HealingResolver,
+) {
+  this.candidates = candidateBuilders.map(candidate => ({
+    description: candidate.description,
+    resolve: candidate.build,   // ← same function reference, new key name — no wrapping, no new logic
+  }));
+}
+```
+
+Later, the *method* `SmartWebLocator['resolve'](action)` (§7's cascade) reads that *property* off each
+entry and calls it: `const resolved = candidate.resolve();` — this is the exact line where the
+original `build` arrow function (defined back in `buildSmartLocatorFromProfile`) finally executes and
+turns into a real `WebLocator`.
+
+Note there are genuinely **two different things named "resolve" in this class**, which is easy to
+conflate when reading the code:
+
+| Name | What it is | Where |
+|---|---|---|
+| `candidate.resolve` | A **property** on a plain data object, holding a function (originally named `build`) | `SmartLocatorCandidate.resolve` |
+| `this.resolve(action)` | A **private method** on `SmartWebLocator` — the whole cascade algorithm in §7 | `SmartWebLocator['resolve']` |
+
+The method calls the property inside its loop (`candidate.resolve()`) — that's the full extent of the
+"link" between them; there's no other indirection or registration mechanism involved.
+
+### 7.2 What you'll actually see for each outcome
+
+The mechanics above (§7, §8, §11, §12) combine into exactly **three** observable outcomes for any
+action call. This table exists to answer "what message do I see?" in one place, without having to
+cross-reference every section individually:
+
+| # | What happened | Test result | Message you see | Where it's defined |
+|---|---|---|---|---|
+| 1 | Preferred or a fallback locator resolved directly (no healing needed) | ✅ Passes | Nothing, unless recovery wasn't the *first* candidate — then a `console.warn` + report annotation noting which fallback recovered it | §7 |
+| 2 | Every preferred/fallback candidate failed, but a **history** locator was found and scored `>= 0.85` (`'auto'`/`'review'` tier) | ✅ Passes | `console.warn` + report annotation: `"Healed via history — tier=X, score=Y"` — **no error is ever thrown for this outcome** | §8 |
+| 3a | Everything above failed, and the last-resort **suggestion** scan found an element with a real `id` | ❌ Fails | `LocatorActionError`: `"...failed — locator: X. Did you mean: #someId (score Y)?"` | §11, §12 |
+| 3b | Everything above failed, and the suggestion scan found an element **without** an `id` (or found nothing at all, or the flag was off) | ❌ Fails | `LocatorActionError`: `"...failed — locator: X. Closest semantic match (score Y): role=..., name=\"...\" — no id, author manually."` (or, with no suggestion at all: just `"...failed — locator: X"`) | §11, §12 |
+
+The easiest mistake to make when reading this doc top-to-bottom: assuming "Did you mean" is the
+history stage's message, and "Closest semantic match" belongs to some other stage. Both actually come
+from the **same** stage (suggestion search, §11/§12) — the only difference between 3a and 3b is
+whether the resolved suggestion element happened to have an `id` attribute. History healing (outcome
+2) never produces either phrase — its own distinct message (`"Healed via history — ..."`) only ever
+appears when the test **passes**, since a history heal that succeeds returns a resolved locator
+instead of throwing.
 
 ---
 
 ## 8. Healing deep dive — `createHealingResolver`
+
 
 `SmartWebUtils.createHealingResolver(profile)` returns the `HealingResolver` closure passed into
 `buildSmartLocatorFromProfile`. It is only invoked once every preferred+fallback candidate has
@@ -268,6 +351,13 @@ No history loop, no `locatorFromStrategy`, no `extractLiveSemanticSnapshot`, no 
 runs. The only cost paid eagerly is allocating one small closure (a function pointer plus a couple of
 captured variables) — not the computation described inside it.
 
+Worth being explicit about one subtlety: `const healed = await this.healingResolver(...)` is the
+closure's **first execution**, not a lookup of something already computed. Nothing about `healed`
+exists before this line runs — there is no pre-resolved "healed locator" sitting around waiting to be
+returned. The entire history-candidate search (every `locatorFromStrategy` + `count()` check),
+scoring (`extractLiveSemanticSnapshot` + `scoreCandidateSimilarity`), tier computation, optional
+suggestion search, and artifact write all start fresh, from a blank slate, triggered by this one call.
+
 **The exact same pattern is used one level up, for `preferred`/`fallback` candidates themselves** —
 not just for healing. In `buildSmartLocatorFromProfile`:
 
@@ -301,38 +391,13 @@ one never queries the DOM; only an action or `.count()` does (see §7).
    success (§7's `resolve()` loop). A thunk lets the *decision of whether to run this* stay entirely
    inside the loop, instead of computing every branch's result up front and picking one afterward.
 
-**What this pattern is called:** it's **lazy evaluation via a thunk** (a zero-argument function that
+**What this pattern is called:** it's **LAZY EVALUATION VIA A THUNK** (a zero-argument function that
 wraps a deferred computation) — sometimes also described as a **deferred/lazy closure** or, in a
 broader OOP-design-pattern vocabulary, a **Supplier**. It's the same idea whether the thunk wraps one
 `locatorFromStrategy` call (`build`) or an entire multi-step algorithm (`createHealingResolver`'s
 returned closure) — "defer running this until someone actually asks for the result."
 
-**The Java equivalent:** Java has no bare function-as-value syntax the way JS/TS does, but
-`java.util.function.Supplier<T>` is the direct analogue — a functional interface with a single
-`T get()` method, constructible from a lambda:
-
-```java
-interface CandidateLocatorBuilder {
-    WebLocator build();   // equivalent to TS's `type CandidateLocatorBuilder = () => WebLocator`
-}
-
-record Candidate(String description, Supplier<WebLocator> build) {}
-
-List<Candidate> allCandidates = List.of(
-    new Candidate(
-        "preferred:" + profile.id(),
-        () -> locatorFromStrategy(page, profile.preferredLocator())   // lambda — not invoked here either
-    )
-    // ...fallback candidates mapped the same way
-);
-
-// later, inside the resolve loop:
-WebLocator resolved = candidate.build().get();   // only NOW does the lambda body run
-```
-
-Same mechanism as TS: `Supplier<WebLocator>` (or a custom functional interface) holds a lambda that
-captures `page`/`profile`/`strategy` by closure, and nothing runs until `.get()` (Java's `Supplier`
-convention) is called — exactly analogous to TS calling `candidate.build()`/`candidate.resolve()`.
+> 💡 **Did you know:** this can be done in Java via `Supplier`s.
 
 **Algorithm:**
 
@@ -392,27 +457,28 @@ export const extractLiveSemanticSnapshot = async (
 | `parent` | Nearest ancestor element carrying `data-testid`, found via `extractLiveDomContext` walking `el.parentElement` upward until one is found (or none). |
 | `neighbors` | Sibling elements (same container as `parent`, or `el.parentElement`/`el` itself if no `data-testid` ancestor exists) that carry `data-testid`, reverse-mapped from raw testid strings back to **registry profile ids** via `reverseLookupNeighborProfileIds` — only when `context.registry` is supplied. |
 
-### The `text` fallback (bug found and fixed this pass)
+### The `text` fallback for form controls
 
 `innerText()` is **always empty** for `<input>`/`<textarea>` elements — form control identity/content
-lives in the `placeholder` or `value` attribute, not in rendered text nodes. Before this fix, `text`
-was structurally always `''` (empty) for the live side of any form-control comparison, which meant
-`scoreCandidateSimilarity` always scored `text: 0` for inputs — regardless of how good the actual
-match was.
+lives in the `placeholder` or `value` attribute, not in rendered text nodes. Left unhandled, `text`
+would be structurally always `''` (empty) for the live side of any form-control comparison, which
+would mean `scoreCandidateSimilarity` always scores `text: 0` for inputs — regardless of how good the
+actual match is.
 
-**Empirically confirmed impact before the fix:** healing `newTodoInputHealed` against the real
-TodoMVC page, with a perfect `role`/`name`/`tag` match, scored exactly:
+**Impact if this weren't handled:** healing `newTodoInputHealed` against the real TodoMVC page, with a
+perfect `role`/`name`/`tag` match but `text: 0`, would score exactly:
 
 $$
 \text{coreScore} = \frac{1 \times 0.25 + 1 \times 0.25 + 0 \times 0.2 + 1 \times 0.05}{0.75} = \frac{0.55}{0.75} \approx 0.733
 $$
 
-— tier `'fail'`, even though the candidate was, in every meaningful sense, correct. This made healing
-structurally incapable of ever reaching the `'auto'`/`'review'` tiers for form controls.
+— tier `'fail'`, even though the candidate is, in every meaningful sense, correct. Left unhandled,
+healing would be structurally incapable of ever reaching the `'auto'`/`'review'` tiers for form
+controls.
 
-**The fix** — extend the parallel `evaluate()` calls to also read `el.placeholder || el.value` when
-the live element is an `HTMLInputElement`/`HTMLTextAreaElement`, and use that as `text` whenever
-`innerText` is empty:
+**How it's handled** — the parallel `evaluate()` calls also read `el.placeholder || el.value` when
+the live element is an `HTMLInputElement`/`HTMLTextAreaElement`, and that value is used as `text`
+whenever `innerText` is empty:
 
 ```ts
 const [tag, innerText, formValueText, ariaYaml, domContext] = await Promise.all([
@@ -430,10 +496,10 @@ const [tag, innerText, formValueText, ariaYaml, domContext] = await Promise.all(
 const text = innerText.length > 0 ? innerText : formValueText;
 ```
 
-Re-measured after the fix, the same healing attempt now scores `1.0` (`coreScore = 0.75/0.75 = 1`),
+With this handling in place, the same healing attempt scores `1.0` (`coreScore = 0.75/0.75 = 1`),
 tier `'auto'` — confirmed via a live test run (`apps/web/sample/resources/smart-reports/newTodoInputHealed.fill.*.json`).
 This aligns exactly with the "only change what data feeds the algorithm, never the algorithm itself"
-philosophy from §1 — `scoreCandidateSimilarity` itself was not touched.
+philosophy from §1 — `scoreCandidateSimilarity` itself is never touched to special-case form controls.
 
 `name` also falls back to `text` when the aria-snapshot's own name is empty
 (`name: name.length > 0 ? name : text`) — for the same reason: an `<input>`'s accessible name is often
@@ -721,9 +787,6 @@ describe markup structure or copy, which is more likely to drift.
 `lintSmartElementProfile(profile)` runs three independent checks against a single
 `SmartElementProfile` and returns zero or more `RegistryLintIssue { elementId, severity, message }`.
 `lintSmartRegistry(registry)` just `flatMap`s this over every element in the file.
-`priorityOverrideReason` (a human-authored justification string on the profile) downgrades an
-otherwise-`'error'`/`'warning'` result to `'info'` for Rules 1 and 3 — it's the escape hatch for a
-deliberate, reviewed exception.
 
 ### 15.2 Rule 1 — preferred locator outranked by a fallback
 
@@ -731,8 +794,7 @@ deliberate, reviewed exception.
 any fallback has a *better* (numerically lower) rank than the one actually preferred, something
 stronger was authored but never promoted.
 
-**Severity:** `'error'` (the only rule that can produce one) — or `'info'` if
-`priorityOverrideReason` is set.
+**Severity:** `'error'` — the only rule that can produce one.
 
 **Example:**
 
@@ -750,10 +812,8 @@ stronger was authored but never promoted.
 strictly better locator is sitting unused as a fallback. Result:
 
 ```
-[registry-lint] ERROR apps/web/sample/resources/registry/todo-list-smart.registry.json :: newTodoInput :: preferredLocator css:.todo-input (rank 6) is lower priority than available fallback testId:new-todo-input (rank 1). Promote it to preferredLocator, or add "priorityOverrideReason" to justify the exception.
+[registry-lint] ERROR apps/web/sample/resources/registry/todo-list-smart.registry.json :: newTodoInput :: preferredLocator css:.todo-input (rank 6) is lower priority than available fallback testId:new-todo-input (rank 1). Promote it to preferredLocator.
 ```
-
-Adding `"priorityOverrideReason": "css selector matches an A/B test variant; testId is not present in that variant"` to the profile would downgrade this to `'info'` instead of failing CI.
 
 ### 15.3 Rule 2 — fallbacks not sorted by priority
 
@@ -790,7 +850,7 @@ Result:
 available rank still worse than `STRONG_RANK_THRESHOLD` (3)? If even the best one is placeholder/
 text/css, nothing testId/role/label-shaped is registered at all.
 
-**Severity:** `'warning'`, or `'info'` if `priorityOverrideReason` is set.
+**Severity:** always `'warning'`.
 
 **Example:**
 
@@ -820,7 +880,7 @@ real TodoMVC demo app (`https://demo.playwright.dev/todomvc`):
 | Element id | Demonstrates |
 |---|---|
 | `newTodoInput` | The plain fallback path — `preferredLocator` (role) is genuinely valid on the live page, so resolution succeeds on the first candidate; `fallbackLocators`/`history` exist but are never needed in this test run. |
-| `newTodoInputHealed` | The **real healing path**. `preferredLocator` (`testId: "new-todo-input"`) and the sole `fallbackLocators` entry (`css: "input.todo-input-v2"`) are both deliberately non-existent on the real page — modeling a renamed/never-shipped testid and a refactored CSS class. `history` holds two genuinely valid past strategies (`placeholder` and `css: input.new-todo`). Resolution is therefore forced through `createHealingResolver`, which finds the `placeholder` history candidate, scores it via `extractLiveSemanticSnapshot` (a perfect role/name/tag/text match after the §9 fix), and heals with `tier=auto, score=1.000`. |
+| `newTodoInputHealed` | The **real healing path**. `preferredLocator` (`testId: "new-todo-input"`) and the sole `fallbackLocators` entry (`css: "input.todo-input-v2"`) are both deliberately non-existent on the real page — modeling a renamed/never-shipped testid and a refactored CSS class. `history` holds two genuinely valid past strategies (`placeholder` and `css: input.new-todo`). Resolution is therefore forced through `createHealingResolver`, which finds the `placeholder` history candidate, scores it via `extractLiveSemanticSnapshot` (a perfect role/name/tag/text match, per §9's text-fallback handling), and heals with `tier=auto, score=1.000`. |
 | `todoItems` | A `listitem` element (`li.todo-item`), used only for the `expectCount` assertion after adding a todo via either path above. |
 
 Both `newTodoInput` and `newTodoInputHealed`'s `semanticSnapshot.parent`/`neighbors` reference
@@ -876,9 +936,6 @@ both flags forced on in `beforeEach`:
   would flag it (each is loaded independently via `SmartWebUtils.fromRegistryFile`, scoped to whatever
   file a given screen object points at, so this is low-risk today but worth a lint rule if the number
   of registries grows).
-- **`priorityOverrideReason` is not itself validated for content** — any non-empty string downgrades an
-  error to an info note; there's no minimum-length or free-text-quality check. Acceptable for a
-  small, reviewed registry; would need a stronger check (or required PR review) at scale.
 
 ---
 
@@ -891,16 +948,20 @@ thrown, suggestion-carrying `LocatorActionError`:
 flowchart TD
     subgraph Setup["Setup (once per screen object)"]
         R["registry JSON on disk"] -->|"fromRegistryFile"| SR["SmartRegistry in memory"]
-        SR -->|"getByElementId(id)"| SL["SmartWebLocator\n(candidates + healingResolver, all lazy)"]
+        SR -->|"getByElementId(id)"| Flag{"SMART_LOCATOR flag on?\n(checked once, here — before\nresolve() is ever called)"}
+        Flag -->|"no"| BuildOff["SmartWebLocator\ncandidates = [preferred] only\nhealingResolver = undefined"]
+        Flag -->|"yes"| BuildOn["SmartWebLocator\ncandidates = [preferred, fallback#1, #2, ...]\nhealingResolver = closure (§8.1)"]
     end
 
     subgraph Action["Every action call (fill/tap/getText/...)"]
-        SL --> R1{"Try preferredLocator\ncount() > 0?"}
+        BuildOff --> R1{"Try preferredLocator\ncount() > 0?"}
+        BuildOn --> R1
         R1 -->|yes| OK1["Use it — done"]
-        R1 -->|no| R2{"Try fallbackLocators\nin order — any count() > 0?"}
+        R1 -->|no| R2{"Try fallbackLocators (if any)\nin order — any count() > 0?"}
         R2 -->|yes| OK2["Use it — warn + annotation\n(recovered, not silent)"]
-        R2 -->|no, and SMART_LOCATOR off| FailNoHeal["throw LocatorActionError\n(no healing attempted)"]
-        R2 -->|no, and SMART_LOCATOR on| Heal["createHealingResolver runs"]
+        R2 -->|no| HasResolver{"healingResolver\nprovided?"}
+        HasResolver -->|"no"| FailNoHeal["throw LocatorActionError\n(no healing attempted)"]
+        HasResolver -->|"yes"| Heal["createHealingResolver runs"]
     end
 
     subgraph Healing["Healing (§8)"]

@@ -49,11 +49,6 @@ export interface SmartElementProfile extends SmartElementVersion {
   id: string;
   history: SmartElementVersion[];
   semanticSnapshot?: SmartElementSemanticSnapshot;
-  // Explicit, human-authored justification for why `preferredLocator` does
-  // not follow the testId > role > label > placeholder > text > css
-  // priority order (see registry-lint.utils.ts). Required to downgrade a
-  // priority lint error to an informational note instead of silencing it.
-  priorityOverrideReason?: string;
 }
 
 // A registry file on disk is just { "elements": SmartElementProfile[] }.
@@ -126,10 +121,10 @@ export class SmartWebLocator implements LocatorLike {
     return new SmartWebLocator(this.id, mapped, this.healingResolver);
   }
 
-//   [
-//   { description: "preferred:newTodoInput",  resolve: () => locatorFromStrategy(page, profile.preferredLocator) },
-//   { description: "fallback#1:newTodoInput", resolve: () => locatorFromStrategy(page, strategy) },
-// ]
+  // [
+  //   { description: "preferred:newTodoInput",  resolve: () => locatorFromStrategy(page, profile.preferredLocator) },
+  //   { description: "fallback#1:newTodoInput", resolve: () => locatorFromStrategy(page, strategy) },
+  // ]
   private async resolve(action: string): Promise<WebLocator> {
     const failedCandidates: string[] = [];
 

@@ -38,7 +38,6 @@ const describeStrategy = (strategy: SmartLocatorStrategy): string => {
 
 export const lintSmartElementProfile = (profile: SmartElementProfile): RegistryLintIssue[] => {
   const issues: RegistryLintIssue[] = [];
-  const isOverridden = profile.priorityOverrideReason !== undefined;
 
   // Rule 1 — is a stronger locator sitting unused in fallbackLocators while a
   // weaker one is preferred? Only rule that can produce 'error' severity.
@@ -48,10 +47,8 @@ export const lintSmartElementProfile = (profile: SmartElementProfile): RegistryL
   if (betterFallback !== undefined) {
     issues.push({
       elementId: profile.id,
-      severity: isOverridden ? 'info' : 'error',
-      message: isOverridden
-        ? `preferredLocator ${describeStrategy(profile.preferredLocator)} is lower priority than fallback ${describeStrategy(betterFallback)}, accepted via override: "${profile.priorityOverrideReason}".`
-        : `preferredLocator ${describeStrategy(profile.preferredLocator)} (rank ${preferredRank}) is lower priority than available fallback ${describeStrategy(betterFallback)} (rank ${rankOf(betterFallback)}). Promote it to preferredLocator, or add "priorityOverrideReason" to justify the exception.`,
+      severity: 'error',
+      message: `preferredLocator ${describeStrategy(profile.preferredLocator)} (rank ${preferredRank}) is lower priority than available fallback ${describeStrategy(betterFallback)} (rank ${rankOf(betterFallback)}). Promote it to preferredLocator.`,
     });
   }
 
@@ -76,10 +73,8 @@ export const lintSmartElementProfile = (profile: SmartElementProfile): RegistryL
   if (bestActiveRank > STRONG_RANK_THRESHOLD) {
     issues.push({
       elementId: profile.id,
-      severity: isOverridden ? 'info' : 'warning',
-      message: isOverridden
-        ? `No strong locator (testId/role/label) is registered as an active candidate, accepted via override: "${profile.priorityOverrideReason}".`
-        : 'No strong locator (testId/role/label) is registered as an active candidate (preferred or fallback) — only placeholder/text/css are available. Confirm none of the stronger kinds exist in the DOM before shipping.',
+      severity: 'warning',
+      message: 'No strong locator (testId/role/label) is registered as an active candidate (preferred or fallback) — only placeholder/text/css are available. Confirm none of the stronger kinds exist in the DOM before shipping.',
     });
   }
 
@@ -90,6 +85,6 @@ export const lintSmartRegistry = (registry: SmartRegistry): RegistryLintIssue[] 
   return registry.elements.flatMap(lintSmartElementProfile);
 };
 
-// Example — Rule 1: preferred={kind:'css', rank 6}, fallbacks=[{testId, rank 1}] -> betterFallback found -> 'error' (or 'info' if priorityOverrideReason is set).
+// Example — Rule 1: preferred={kind:'css', rank 6}, fallbacks=[{testId, rank 1}] -> betterFallback found -> 'error'.
 // Example — Rule 2: fallbacks=[{placeholder, rank 4}, {role, rank 2}] -> sorted would be [role, placeholder] -> order differs -> 'warning'.
-// Example — Rule 3: preferred={placeholder, rank 4}, fallbacks=[{css, rank 6}, {text, rank 5}] -> bestActiveRank=4 > 3 -> 'warning' (or 'info' if overridden).
+// Example — Rule 3: preferred={placeholder, rank 4}, fallbacks=[{css, rank 6}, {text, rank 5}] -> bestActiveRank=4 > 3 -> 'warning'.
