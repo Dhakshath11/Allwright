@@ -1,6 +1,9 @@
 import { test } from '@playwright/test';
 import { TodoListScreen } from '../screens/todo-list.screen';
 
+// Exercises TodoListScreen — the TRADITIONAL POM screen (hardcoded locators, no
+// registry, no self-healing). For the registry-driven smart-locator equivalent,
+// see web_smart_chromium.spec.ts / TodoListSmartScreen.
 test.describe.configure({ mode: 'serial' });
 
 test.beforeEach(async ({ page }) => {

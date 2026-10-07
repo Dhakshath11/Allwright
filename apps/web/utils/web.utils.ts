@@ -168,6 +168,12 @@ export class WebUtils extends CoreUtils<WebLocator, WebPage> {
   // content and finding a role within a container — without reaching into
   // the raw Playwright API at the screen layer.
 
+  // Out of every element matched by `locator`, keeps only the one(s) whose text
+  // matches `hasText` — e.g. out of 3 <li data-testid="todo-item"> rows, narrows
+  // down to just the row containing "Buy groceries". Still lazy/dynamic: if the
+  // text isn't unique among current matches, more than one element can come back,
+  // which will trip a Playwright strict-mode error on a single-element action.
+  // e.g. filter(todoItems, { hasText: 'Buy groceries' }) -> just the <li> row(s) containing that text.
   filter(
     locator: WebLocator,
     options: { hasText?: string | RegExp },
@@ -178,6 +184,11 @@ export class WebUtils extends CoreUtils<WebLocator, WebPage> {
     );
   }
 
+  // Finds a role-based element nested INSIDE an already-resolved container — not
+  // a same-level filter like filter() above, but a parent->child descendant search.
+  // e.g. row = filter(todoItems, { hasText: 'Buy groceries' }) -> that one <li>;
+  // getByRoleWithin(row, 'checkbox') -> the <input> inside THAT <li> specifically,
+  // even though there are other checkboxes elsewhere on the page for other rows.
   getByRoleWithin(
     container: WebLocator,
     role: AriaRole,

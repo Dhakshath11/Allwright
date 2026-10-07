@@ -11,6 +11,13 @@ import { WebUtils, WebLocator } from '../../utils/web.utils';
  *
  * TodoMVC exposes `data-testid="todo-item"` per item — used as the primary
  * locator. Other elements use role+name where testIds are absent.
+ *
+ * This is the TRADITIONAL POM approach: locators are hardcoded directly in this
+ * class's constructor, with no registry file and no self-healing/suggestion
+ * fallback — if a locator here breaks, the test just fails. Contrast with
+ * TodoListSmartScreen (todo-list-smart.screen.ts), which resolves its locators
+ * from a registry JSON via SmartWebUtils/SmartWebLocator and can fall back to
+ * history-based healing or a suggestion search (see SMART_LOCATOR_ARCHITECTURE.md).
  */
 export class TodoListScreen {
   private readonly utils: WebUtils;
@@ -25,6 +32,8 @@ export class TodoListScreen {
   constructor(page: Page) {
     this.utils = new WebUtils(page);
 
+    // Initialize locators for the main TodoMVC screen. All locators are hardcoded
+    // according to the TRADITIONAL POM approach.
     this.newTodoInput = this.utils.getByPlaceholder('What needs to be done?');
     this.todoItems = this.utils.getByTestId('todo-item');
     this.filterAll = this.utils.getByRole('link', 'All');
@@ -44,6 +53,9 @@ export class TodoListScreen {
 
   async completeTodo({ text }: { text: string }): Promise<void> {
     await test.step(`Complete todo "${text}"`, async () => {
+      // todoItems matches every <li> on the page, so we first filter down to just
+      // our one row by its text, then find that row's own checkbox inside it —
+      // otherwise we could end up checking the wrong todo's checkbox.
       const row = this.utils.filter(this.todoItems, { hasText: text });
       const checkbox = this.utils.getByRoleWithin(row, 'checkbox');
       await this.utils.check(checkbox);
@@ -52,7 +64,10 @@ export class TodoListScreen {
 
   async deleteTodo({ text }: { text: string }): Promise<void> {
     await test.step(`Delete todo "${text}"`, async () => {
+      // Same idea as completeTodo: narrow todoItems down to our one row first.
       const row = this.utils.filter(this.todoItems, { hasText: text });
+      // The delete (×) button is hidden by CSS until the row is hovered — hover()
+      // reveals it, since Playwright won't click an element that isn't visible.
       await this.utils.hover(row);
       // `.destroy` is a CSS-class button that only appears on hover.
       const deleteBtn = this.utils.getByRoleWithin(row, 'button', 'Delete');
