@@ -62,7 +62,7 @@ Aspirational — do not implement unless explicitly requested:
 
 - **Integrations:** JIRA (bug/ticket sync), Slack (run notifications), Email (report delivery)
 - AI-powered test generation (ties into prompt-driven QA goal above)
-- Self-healing locators
+- Self-healing locators for **mobile** and **API** surfaces (web already has this — see [Smart Locator (Self-Healing, Web)](#smart-locator-self-healing-web) below)
 - Defect prediction
 - Flaky test detection
 - Distributed cloud execution (likely via LambdaTest grid)
@@ -73,6 +73,8 @@ Aspirational — do not implement unless explicitly requested:
 
 Utility methods under `core/utils/` (and anywhere else in `core/`) **must have unit tests**. Allwright is itself a testing framework — shipping untested helpers to manual QAs would undermine the product. Runner is **Vitest** (`vitest.config.ts` scoped to `core/**/*.test.ts`, `npm run test:unit`). End-to-end suites under `apps/` exercise real targets and are not a substitute for unit tests on the helpers they depend on.
 
+**Current gap:** this policy is not yet enforced in practice — `vitest.config.ts` doesn't exist, `vitest` isn't a dependency, there's no `test:unit` script, and zero `*.test.ts` files exist anywhere in the repo (confirmed via a full-repo review). `core/utils/string-similarity.utils.ts` and `core/utils/locator-error.ts` in particular ship pure, deterministic logic with no unit coverage today — treat standing up this infrastructure as a priority follow-up, not optional polish.
+
 ## Working in This Repo Today
 
 ### Current Layout
@@ -81,10 +83,14 @@ Utility methods under `core/utils/` (and anywhere else in `core/`) **must have u
 Allwright/
 ├── core/                              # surface-agnostic — no mobilewright/playwright imports
 │   ├── contracts/
-│   │   ├── locator.contract.ts        # LocatorLike, WaitState
+│   │   ├── locator.contract.ts        # LocatorLike, WaitState, SmartLocatorCandidate/Resolution (generic — no WebLocator/Playwright types)
 │   │   └── root.contract.ts           # LocatorRoot (no AriaRole — that's per-surface)
+│   ├── config/
+│   │   └── feature-flags.ts           # isSmartLocatorEnabled() / isSmartSnapshotCaptureEnabled() — env-var-driven, default off
 │   └── utils/
-│       └── core.utils.ts              # CoreUtils<L, R> — generic facade (no getByRole)
+│       ├── core.utils.ts              # CoreUtils<L, R> — generic facade (no getByRole)
+│       ├── locator-error.ts           # LocatorActionError + LocatorSuggestion — shared error shape for smart-locator failures
+│       └── string-similarity.utils.ts # normalizedLevenshteinSimilarity / jaroSimilarity / jaroWinklerSimilarity — surface-agnostic fuzzy matching
 ├── apps/
 │   ├── mobile/
 │   │   ├── mobilewright.config.ts             # regression suite — testDir: ./sample/tests
@@ -109,15 +115,28 @@ Allwright/
 │   ├── web/
 │   │   ├── playwright.config.ts               # 3-project matrix (chromium/firefox/webkit), testMatch: /_<browser>\.spec\.ts$/, baseURL: https://demo.playwright.dev, testDir: ./sample/tests
 │   │   ├── snapshots.config.ts                # locator-discovery — testDir: ./sample/snapshots, same 3-project matrix
+│   │   ├── SMART_LOCATOR_ARCHITECTURE.md      # full design doc for the self-healing smart-locator system below
 │   │   ├── utils/
-│   │   │   └── web.utils.ts                   # WebLocator (LocatorLike adapter) + WebPage (LocatorRoot bridge) + WebUtils extends CoreUtils
+│   │   │   ├── web.utils.ts                   # WebLocator (LocatorLike adapter) + WebPage (LocatorRoot bridge) + WebUtils extends CoreUtils
+│   │   │   ├── smart-locator.utils.ts         # SmartWebLocator (resolution cascade), SmartElementProfile/Registry types, locatorFromStrategy, describeLocatorStrategy, extractLiveSemanticSnapshot
+│   │   │   ├── smart-web.utils.ts             # SmartWebUtils facade — getByElementId, goto, fill/click/pressKey/expectVisible/expectCount, createHealingResolver, writeHealingArtifact
+│   │   │   ├── similarity-engine.utils.ts     # scoreCandidateSimilarity (weighted role/name/text/tag + parent/neighbor boost) + confidenceTierForScore (auto/review/fail)
+│   │   │   ├── suggestion-search.utils.ts     # last-resort whole-page aria-scan when preferred/fallback/history all miss
+│   │   │   ├── snapshot-graph.utils.ts        # DOM/aria evidence capture — 4-slot ring buffer (current + v1-v3) per element/screen
+│   │   │   └── registry-lint.utils.ts         # pure validation of *.registry.json locator-priority choices (no DOM/browser)
 │   │   └── sample/
 │   │       ├── resources/
-│   │       │   └── snapshots/                 # one <browser>_<state>.yaml + .png per captured screen (permanent — never delete)
+│   │       │   ├── snapshots/                 # one <browser>_<state>.yaml + .png per captured screen (permanent — never delete)
+│   │       │   ├── registry/
+│   │       │   │   └── todo-list-smart.registry.json  # SmartElementProfile[] — locator strategies + semanticSnapshot per logical element
+│   │       │   ├── smart-reports/             # gitignored — HealingArtifact JSON per healing/suggestion attempt (regenerated per run)
+│   │       │   └── smart-snapshots/           # gitignored — DOM/aria ring-buffer evidence per element (regenerated per run)
 │   │       ├── screens/                        # web POMs — no browser subfolders (HTML is browser-agnostic)
-│   │       │   └── todo-list.screen.ts        # TodoListScreen (TodoMVC at demo.playwright.dev/todomvc)
+│   │       │   ├── todo-list.screen.ts        # TodoListScreen — TRADITIONAL POM, hardcoded locators, no healing
+│   │       │   └── todo-list-smart.screen.ts  # TodoListSmartScreen — same app, locators resolved from the registry via SmartWebUtils
 │   │       ├── tests/                         # REGRESSION SUITE — discovered by playwright.config.ts
-│   │       │   └── web_chromium.spec.ts       # TodoMVC suite (serial, add/complete/delete/filter)
+│   │       │   ├── web_chromium.spec.ts       # TodoMVC suite via TodoListScreen (serial, add/complete/delete/filter)
+│   │       │   └── web_smart_chromium.spec.ts # Smart-locator suite via TodoListSmartScreen — fallback/healing/suggestion-stage coverage
 │   │       └── snapshots/                     # LOCATOR-DISCOVERY TOOLING — discovered by snapshots.config.ts
 │   │           └── _snapshots_chromium.spec.ts # aria-snapshot captures → resources/snapshots/
 │   └── api/
@@ -167,6 +186,24 @@ No `CoreUtils` inheritance. No `LocatorLike`/`LocatorRoot` contracts. No screen 
 
 **Don't:** import `@mobilewright/*` or surface-specific types into `core/`. Don't put mobile-only methods (gestures, hardware buttons) into `CoreUtils`. Don't reintroduce "screen"/"page" terminology in `core/` — use `root`.
 
+### Smart Locator (Self-Healing, Web)
+
+A parallel, registry-driven locator system for the web surface, sitting *alongside* (not replacing) the plain `WebUtils`/`WebLocator`/`TodoListScreen` path described above. Full design doc: `apps/web/SMART_LOCATOR_ARCHITECTURE.md` — read that before changing anything here; this is a pointer, not a duplicate.
+
+**One-paragraph summary:** a screen that wants self-healing locators uses `SmartWebUtils.fromRegistryFile(page, path)` instead of `new WebUtils(page)`, and `SmartWebLocator` (via `utils.getByElementId(id)`) instead of `WebLocator`. Each locator resolves through a strict cascade: try the registry's `preferredLocator`, then its `fallbackLocators` in order, then — if `SMART_LOCATOR=true` — fall back to scoring every *historical* locator strategy (`history[]`) against a recorded `semanticSnapshot` fingerprint (role/name/text/tag/parent/neighbors) via Jaro-Winkler + Levenshtein string similarity, healing silently if the best match scores `>= 0.85`. If even that fails, a last-resort whole-page aria-scan (`findSuggestion`) reports a human-facing hint ("Did you mean: #id?" or "Closest semantic match: ...") — it never auto-applies a fix. Every attempt writes a `HealingArtifact` (JSON on disk + Playwright report attachment).
+
+- `apps/web/utils/smart-locator.utils.ts` — `SmartWebLocator` (the resolution cascade itself), `SmartElementProfile`/`SmartRegistry` types, `locatorFromStrategy`, `describeLocatorStrategy`, `extractLiveSemanticSnapshot`.
+- `apps/web/utils/smart-web.utils.ts` — `SmartWebUtils` facade: `getByElementId`, `goto`, action wrappers (`fill`/`click`/`pressKey`/`expectVisible`/`expectCount`), `createHealingResolver` (the healing algorithm), `writeHealingArtifact`.
+- `apps/web/utils/similarity-engine.utils.ts` — `scoreCandidateSimilarity` + `confidenceTierForScore` (`'auto' | 'review' | 'fail'`).
+- `apps/web/utils/suggestion-search.utils.ts` — the last-resort suggestion stage.
+- `apps/web/utils/snapshot-graph.utils.ts` — DOM/aria evidence capture (4-slot ring buffer), independent of the healing decision itself.
+- `apps/web/utils/registry-lint.utils.ts` + `scripts/lint-smart-registries.ts` — CI quality gate over `*.registry.json` locator-priority choices (`npm run lint:registry`).
+- `core/config/feature-flags.ts` — `SMART_LOCATOR` (master on/off switch) and `SMART_SNAPSHOT_CAPTURE` (evidence capture only) — both default **off**, independent of each other.
+- `core/utils/locator-error.ts` — `LocatorActionError` + `LocatorSuggestion`, the shared error/hint shape thrown on total resolution failure.
+- Sample: `apps/web/sample/resources/registry/todo-list-smart.registry.json` (6 elements — 1 plain, 1 healing demo, 1 list-count, 3 suggestion-stage outcomes), `apps/web/sample/screens/todo-list-smart.screen.ts` (`TodoListSmartScreen`), `apps/web/sample/tests/web_smart_chromium.spec.ts` (5 tests — run via `npm run test:web:smart`).
+
+**Known gap:** this is web-only today. Mobile and API surfaces have no equivalent self-healing mechanism (see Future Scope above).
+
 ### File Naming Convention
 
 Dot-descriptor pattern throughout: `<name>.<role>.ts`. The `<name>` part is **kebab-case** if compound.
@@ -203,8 +240,10 @@ To build a new screen, invoke the `screen-builder` skill (manual mode — token-
 | `npm run test:mobile` | Regression suite (mobilewright.config.ts, testDir: `sample/tests`). |
 | `npm run test:mobile:snapshots` | Locator-discovery captures (snapshots.config.ts, testDir: `sample/snapshots`). Run with `-- --project=<ios\|android>` to scope. |
 | `npm run test:web` | Playwright regression suite (`playwright.config.ts`, testDir: `apps/web/sample/tests`). 3 browser projects (chromium/firefox/webkit). |
+| `npm run test:web:smart` | Smart-locator regression suite only (`web_smart_chromium.spec.ts`, headed, chromium). Set `SMART_LOCATOR`/`SMART_SNAPSHOT_CAPTURE` env vars to override the `beforeEach`-forced `'true'` defaults. |
 | `npm run test:web:snapshots` | Accessibility-tree captures (`apps/web/snapshots.config.ts`, testDir: `apps/web/sample/snapshots`). Pass `-- --project=<chromium\|firefox\|webkit>` to scope. |
 | `npm run test:api` | Playwright API suite (`apps/api/playwright.config.ts`, testDir: `apps/api/sample/tests`). Single 'api' project; picks up `*_api.spec.ts` files. Set `API_BASE_URL` env var to override the default base URL (jsonplaceholder.typicode.com). |
+| `npm run lint:registry` | Validates every `apps/**/*.registry.json` against locator-priority rules (see Smart Locator section above). Exits 1 on any `'error'`-severity issue; part of CI. |
 | `npm test` | Alias for `test:mobile` (only working surface today). |
 
 The `--config <path>` flag works from any cwd as of mobilewright 0.0.44 (earlier versions had a cwd-dependent loader bug that produced `Unsupported platform: "undefined"`). Relative paths inside the config — `globalSetup: './global-setup.ts'`, `testDir`, etc. — resolve against the config file's directory.

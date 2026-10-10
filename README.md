@@ -36,6 +36,7 @@ The smoke test launches the iOS **Contacts** app, taps **Add**, fills a sample c
 | `npm run test:mobile` | Regression suite under `apps/mobile/sample/tests/` |
 | `npm run test:mobile:snapshots` | Locator-discovery captures under `apps/mobile/sample/snapshots/`. Pass `-- --project=<ios\|android>` to scope. |
 | `npm run test:web`    | Playwright regression suite under `apps/web/sample/tests/`. Runs 3 browser projects (chromium/firefox/webkit). |
+| `npm run test:web:smart` | Self-healing smart-locator suite only (`web_smart_chromium.spec.ts`, headed, chromium) — see [Self-healing locators (web)](#self-healing-locators-web--smart-locator). |
 | `npm run test:web:snapshots` | Accessibility-tree captures under `apps/web/sample/snapshots/`. Pass `-- --project=<chromium\|firefox\|webkit>` to scope. |
 | `npm run test:api`    | Playwright API suite under `apps/api/sample/tests/` (matches `*_api.spec.ts`). |
 | `npm run test:api:sample` | Runs direct `request`-fixture sample spec (`sample_api.spec.ts`). |
@@ -43,6 +44,7 @@ The smoke test launches the iOS **Contacts** app, taps **Add**, fills a sample c
 | `npm test`            | Alias for `test:mobile` (only working surface today) |
 | `npm run lint`        | ESLint over the repo (type-aware via `typescript-eslint/recommended-type-checked`) |
 | `npm run lint:fix`    | ESLint with `--fix` |
+| `npm run lint:registry` | Validates every `apps/**/*.registry.json` against locator-priority rules — see [Self-healing locators (web)](#self-healing-locators-web--smart-locator). Part of CI. |
 
 ## CI
 
@@ -89,6 +91,23 @@ projects: [
 - **`.locator` accessor pattern.** Screen fields are typed as `WebLocator`. Playwright's `expect()` requires a raw Playwright `Locator`, not the wrapper — so assertions are `expect(this.field.locator).toBeVisible()`. Passing `this.field` directly to `expect()` is a type error.
 - **Fresh page per test.** Playwright creates a new `Page` for every test automatically. Snapshot tests each call `page.goto()` independently — there is no persistent app state between tests (unlike mobile serial mode, which relies on state accumulated across tests).
 - **Web snapshots are `.yaml` + `.png`**, produced by `locator.ariaSnapshot()`. These are the accessibility trees, not JSON view dumps.
+
+## Self-healing locators (web) — Smart Locator
+
+A second, registry-driven locator system runs **alongside** the plain `TodoListScreen` above — same TodoMVC app, same Playwright config, but locators come from a JSON registry instead of hardcoded `WebUtils` calls, and can self-heal when they break. Full design doc: [`apps/web/SMART_LOCATOR_ARCHITECTURE.md`](./apps/web/SMART_LOCATOR_ARCHITECTURE.md).
+
+**How resolution works, in order:**
+1. Try the registry's `preferredLocator`.
+2. Try each `fallbackLocators` entry, in priority order (`testId` > `role` > `label` > `placeholder` > `text` > `css`).
+3. If both miss and `SMART_LOCATOR=true`: score every *historical* locator strategy (`history[]`) against a recorded `semanticSnapshot` fingerprint (role/name/text/tag/parent/neighbors) using a blend of Jaro-Winkler and Levenshtein similarity. A match scoring `>= 0.85` heals silently (`>= 0.95` = `'auto'`, `0.85–0.95` = `'review'` — both currently accepted).
+4. If even that fails: a last-resort whole-page accessibility-tree scan reports a human-facing hint — `"Did you mean: #id?"` if the best match has a real `id`, or `"Closest semantic match: role=..., name=..."` if not. This stage **never** auto-applies a fix; it only ever informs a human.
+
+Every resolution attempt — healed or failed — writes a `HealingArtifact` (JSON on disk under `smart-reports/`, gitignored, regenerated per run) and attaches it to the Playwright HTML report, so CI visibility never depends on cross-referencing files manually.
+
+- **Try it:** `npm run test:web:smart` runs `apps/web/sample/tests/web_smart_chromium.spec.ts` (5 tests) against `TodoListSmartScreen`, covering: a locator that resolves on the first try, one that heals from history, and three suggestion-stage outcomes (match+id, match+no-id, no match at all).
+- **Feature flags** (`core/config/feature-flags.ts`, both default **off**): `SMART_LOCATOR` is the master healing switch; `SMART_SNAPSHOT_CAPTURE` independently gates DOM/aria evidence capture (a 4-slot ring buffer per element) and never affects whether healing runs.
+- **Registry quality gate:** `npm run lint:registry` validates every `apps/**/*.registry.json` for locator-priority mistakes (e.g. a weaker locator preferred over a stronger one already sitting in `fallbackLocators`) — this runs in CI.
+- **Known gap:** web-only today. There is no mobile or API equivalent yet (tracked under Roadmap below).
 
 ## Architecture in one paragraph
 
@@ -170,6 +189,7 @@ Web surface today:
 - Screen assertions use `expect(this.field.locator).toBeVisible()` — the `.locator` getter on `WebLocator` surfaces the raw Playwright `Locator` that Playwright's `expect()` needs. Passing the `WebLocator` wrapper itself to `expect()` is a type error.
 - No `global-setup.ts` — no device permissions to grant in a browser context.
 - Snapshots are `.yaml` (from `locator.ariaSnapshot()`) + `.png`, not `.json`. Each snapshot test calls `page.goto()` independently because Playwright provides a fresh `Page` per test.
+- `web_smart_chromium.spec.ts` (5 tests) is a **separate, registry-driven suite** against the same TodoMVC app, via `TodoListSmartScreen`/`SmartWebUtils` instead of `TodoListScreen`/`WebUtils` — see [Self-healing locators (web)](#self-healing-locators-web--smart-locator) above.
 
 ## Adding a new screen object (POM)
 
@@ -252,7 +272,7 @@ async expectAtListScreen(): Promise<void> {
 
 **Aspirational:**
 - AI-generated tests from plain-English prompts (the strategic end goal)
-- Self-healing locators
+- Self-healing locators for **mobile** and **API** surfaces (web already has this — see [Self-healing locators (web)](#self-healing-locators-web--smart-locator) above)
 - JIRA / Slack / Email integrations
 - LambdaTest cloud grid + real-device farm integration
 
