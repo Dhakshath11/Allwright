@@ -10,11 +10,11 @@ import {
 } from '../../../core/config/feature-flags';
 import {
   buildSmartLocatorFromProfile,
+  describeLocatorStrategy,
   extractLiveSemanticSnapshot,
   listHistoryCandidates,
   locatorFromStrategy,
   type SmartElementProfile,
-  type SmartLocatorStrategy,
   type SmartRegistry,
   type SmartWebLocator,
 } from './smart-locator.utils';
@@ -93,20 +93,6 @@ export class SmartWebUtils {
     return buildSmartLocatorFromProfile(this.page, profile, this.createHealingResolver(profile));
   }
 
-  // Turns a strategy into a short, human-readable label for logs/artifacts — role is the only kind without a `.value`.
-  private strategyDescription(strategy: SmartLocatorStrategy): string {
-    switch (strategy.kind) {
-      case 'css':
-      case 'placeholder':
-      case 'label':
-      case 'text':
-      case 'testId':
-        return `${strategy.kind}:${strategy.value}`;
-      case 'role':
-        return `role:${strategy.role}:${strategy.name ?? ''}`;
-    }
-  }
-
   // Just builds and returns the closure below — construction is instant/cheap.
   // The body only runs later, lazily, when SmartWebLocator.resolve() calls it as a last resort.
   private createHealingResolver(profile: SmartElementProfile) {
@@ -123,7 +109,7 @@ export class SmartWebUtils {
         | undefined;
 
       for (const strategy of candidates) {
-        const description = `history:${this.strategyDescription(strategy)}`;
+        const description = `history:${describeLocatorStrategy(strategy)}`;
         const locator = locatorFromStrategy(this.page, strategy);
 
         const count = await locator.count();
@@ -264,6 +250,14 @@ export class SmartWebUtils {
     try {
       await locator.fill(text);
     } catch (cause) {
+      // If resolve() already threw a fully-formed LocatorActionError (real element id, full
+      // message, populated .suggestion), re-throw it as-is rather than re-wrapping — re-wrapping
+      // would silently drop the suggestion and replace the real id with a generic placeholder.
+      // Only genuinely unexpected errors (e.g. a raw Playwright failure after a successful
+      // resolve) fall through to the generic wrapper below.
+      if (cause instanceof LocatorActionError) {
+        throw cause;
+      }
       throw new LocatorActionError('smartFill', 'smart locator', cause);
     }
   }
@@ -272,6 +266,9 @@ export class SmartWebUtils {
     try {
       await locator.tap();
     } catch (cause) {
+      if (cause instanceof LocatorActionError) {
+        throw cause;
+      }
       throw new LocatorActionError('smartClick', 'smart locator', cause);
     }
   }
@@ -281,6 +278,9 @@ export class SmartWebUtils {
       const raw = await locator.resolvePlaywrightLocator(`pressKey:${key}`);
       await raw.press(key);
     } catch (cause) {
+      if (cause instanceof LocatorActionError) {
+        throw cause;
+      }
       throw new LocatorActionError(`smartPressKey('${key}')`, 'smart locator', cause);
     }
   }

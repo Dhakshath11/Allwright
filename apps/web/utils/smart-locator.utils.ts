@@ -95,6 +95,23 @@ export const locatorFromStrategy = (page: Page, strategy: SmartLocatorStrategy):
   }
 };
 
+// Turns a strategy into a short, human-readable label for logs/artifacts/error messages — role
+// is the only kind without a `.value`. Shared by every candidate description across all three
+// tiers (preferred/fallback here, history in createHealingResolver) so failedCandidates/thrown
+// error messages always show the actual locator kind+value, not just a generic tier label.
+export const describeLocatorStrategy = (strategy: SmartLocatorStrategy): string => {
+  switch (strategy.kind) {
+    case 'css':
+    case 'placeholder':
+    case 'label':
+    case 'text':
+    case 'testId':
+      return `${strategy.kind}:${strategy.value}`;
+    case 'role':
+      return `role:${strategy.role}:${strategy.name ?? ''}`;
+  }
+};
+
 export class SmartWebLocator implements LocatorLike {
   private readonly candidates: SmartLocatorCandidate<WebLocator>[];
 
@@ -134,9 +151,11 @@ export class SmartWebLocator implements LocatorLike {
       if (count > 0) {                                // (3) found it — stop here
         if (failedCandidates.length > 0) {
           console.warn(
-            `[SmartLocator:${this.id}] ${action} recovered using ${candidate.description}. Failed first: ${failedCandidates.join(' | ')}`,
+            `[SmartLocator:${this.id}] ↩️ ${action} recovered using ${candidate.description}. Failed first: ${failedCandidates.join(' | ')}`,
           );
-          test.info().annotations.push({ type: 'info', description: `Resolved via ${candidate.description}` });
+          // ↩️ marks "recovered, not silent" — distinct at a glance from a clean
+          // first-try pass (no annotation at all) and from a full heal (🩹 below).
+          test.info().annotations.push({ type: 'info', description: `↩️ Resolved via ${candidate.description}` });
         }
         return resolved;
       }
@@ -154,19 +173,25 @@ export class SmartWebLocator implements LocatorLike {
         const tierTag = healed.tier !== undefined ? ` tier=${healed.tier}` : '';
         const scoreTag = healed.score !== undefined ? ` score=${healed.score.toFixed(3)}` : '';
         console.warn(
-          `[SmartLocator:${this.id}] ${action} healed using ${healed.selectedCandidate}.${tierTag}${scoreTag}`,
+          `[SmartLocator:${this.id}] 🩹 ${action} healed using ${healed.selectedCandidate}.${tierTag}${scoreTag}`,
         );
+        // 🩹 marks a genuine healing event — history/similarity saved this run even
+        // though every authored (preferred/fallback) locator failed. Visually
+        // distinct from both ↩️ (cheap fallback recovery) and ❗ (suggestion/failure).
         test.info().annotations.push({
           type: 'info',
-          description: `Healed via history — tier=${healed.tier ?? 'unknown'}, score=${healed.score?.toFixed(3) ?? 'n/a'}`,
+          description: `🩹 Healed via history — tier=${healed.tier ?? 'unknown'}, score=${healed.score?.toFixed(3) ?? 'n/a'}`,
         });
         return healed.selectedLocator;
       }
 
       if (healed.suggestion !== undefined) {
+        // ❗ marks the last-resort, failure-path hint — this annotation only ever
+        // appears alongside a thrown LocatorActionError, so it's the strongest
+        // visual marker of the three (↩️ / 🩹 / ❗).
         test.info().annotations.push({
           type: 'info',
-          description: `Suggestion: ${describeSuggestion(healed.suggestion)} (score=${healed.suggestion.score.toFixed(2)})`,
+          description: `❗ Suggestion: ${describeSuggestion(healed.suggestion)} (score=${healed.suggestion.score.toFixed(2)})`,
         });
       }
 
@@ -300,12 +325,12 @@ export const buildSmartLocatorFromProfile = (
 ): SmartWebLocator => {
   const allCandidates: Array<{ description: string; build: CandidateLocatorBuilder }> = [
     {
-      description: `preferred:${profile.id}`,
+      description: `preferred:${describeLocatorStrategy(profile.preferredLocator)}`,
       // Same lazy-closure pattern as createHealingResolver (§8.1) — build is a thunk, not invoked until candidate.resolve() runs.
       build: () => locatorFromStrategy(page, profile.preferredLocator), // Provides playwright locator for the preferred strategy
     },
     ...profile.fallbackLocators.map((strategy, index) => ({
-      description: `fallback#${index + 1}:${profile.id}`,
+      description: `fallback#${index + 1}:${describeLocatorStrategy(strategy)}`,
       build: () => locatorFromStrategy(page, strategy),
     })),
   ];

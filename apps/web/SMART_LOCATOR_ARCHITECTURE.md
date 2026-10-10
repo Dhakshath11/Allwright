@@ -24,6 +24,7 @@ Every method, type, and business rule described below exists in the repository t
 16. [Sample assets walkthrough](#16-sample-assets-walkthrough)
 17. [Known gaps & future work](#17-known-gaps--future-work)
 18. [Full combined flow diagram](#18-full-combined-flow-diagram)
+19. [Test suite reference — `web_smart_chromium.spec.ts`](#19-test-suite-reference--web_smart_chromiumspects)
 
 ---
 
@@ -874,7 +875,7 @@ Best active rank is `text` = 5, worse than the threshold of 3. Result:
 
 ## 16. Sample assets walkthrough
 
-**`apps/web/sample/resources/registry/todo-list-smart.registry.json`** — 3 elements, all targeting the
+**`apps/web/sample/resources/registry/todo-list-smart.registry.json`** — 6 elements, all targeting the
 real TodoMVC demo app (`https://demo.playwright.dev/todomvc`):
 
 | Element id | Demonstrates |
@@ -882,6 +883,9 @@ real TodoMVC demo app (`https://demo.playwright.dev/todomvc`):
 | `newTodoInput` | The plain fallback path — `preferredLocator` (role) is genuinely valid on the live page, so resolution succeeds on the first candidate; `fallbackLocators`/`history` exist but are never needed in this test run. |
 | `newTodoInputHealed` | The **real healing path**. `preferredLocator` (`testId: "new-todo-input"`) and the sole `fallbackLocators` entry (`css: "input.todo-input-v2"`) are both deliberately non-existent on the real page — modeling a renamed/never-shipped testid and a refactored CSS class. `history` holds two genuinely valid past strategies (`placeholder` and `css: input.new-todo`). Resolution is therefore forced through `createHealingResolver`, which finds the `placeholder` history candidate, scores it via `extractLiveSemanticSnapshot` (a perfect role/name/tag/text match, per §9's text-fallback handling), and heals with `tier=auto, score=1.000`. |
 | `todoItems` | A `listitem` element (`li.todo-item`), used only for the `expectCount` assertion after adding a todo via either path above. |
+| `toggleAllSuggested` | **Suggestion stage, match + id.** Preferred/fallback/history all fake. `semanticSnapshot` was captured via the real `extractLiveSemanticSnapshot` against the genuine `#toggle-all` checkbox (see §19). |
+| `clearCompletedSuggested` | **Suggestion stage, match + no id.** Same fake-everything setup, targeting the real `.clear-completed` button, which has no `id` attribute. |
+| `completionSliderSuggested` | **Suggestion stage, no match at all.** Recorded `role: "slider"` doesn't exist anywhere on the real page, so even the suggestion search finds nothing. |
 
 Both `newTodoInput` and `newTodoInputHealed`'s `semanticSnapshot.parent`/`neighbors` reference
 `"todo-root"`/`"todoItems"` — but the real TodoMVC markup doesn't expose a `data-testid="todo-root"`
@@ -898,15 +902,14 @@ except its private `utils` field is `SmartWebUtils` (not `WebUtils`) and its loc
 `SmartWebLocator` (not `WebLocator`), constructed once via `SmartWebUtils.fromRegistryFile(page, resolveRegistryPath('todo-list-smart.registry.json'))`
 in the constructor. Methods: `open()` (calls `utils.goto`, which also captures a baseline snapshot
 graph), `addTodo`/`addTodoViaSimilarityHeal` (fill + press Enter, one per registry element under
-test), `expectInputReady()`, `expectTodoCount({ count })`.
+test), `expectInputReady()`, `expectTodoCount({ count })`, and `expectToggleAllSuggested()`/
+`expectClearCompletedSuggested()`/`expectCompletionSliderSuggested()` (each a thin wrapper around
+`utils.expectVisible` over the three suggestion-stage elements above — see §19 for why `expectVisible`
+specifically, and the full per-test breakdown).
 
-**`apps/web/sample/tests/web_smart_chromium.spec.ts`** — 2 tests, `test.describe.configure({ mode: 'serial' })`,
-both flags forced on in `beforeEach`:
-
-1. `"smart locator fallback adds a todo without touching legacy tests"` — exercises `newTodoInput`
-   (trivial preferred-locator success path).
-2. `"smart locator heals from history when preferred and fallback miss"` — exercises
-   `newTodoInputHealed` (forces the full healing cascade, as described above).
+**`apps/web/sample/tests/web_smart_chromium.spec.ts`** — 5 tests total; see §19 for the complete,
+per-test reference (registry element exercised, assertion style, and expected report outcome for
+each).
 
 ---
 
@@ -991,3 +994,29 @@ flowchart TD
 
 Every arrow in this diagram corresponds to a real function call in the codebase, cross-referenced by
 section above — there is no aspirational or "proposed" branch left in this document.
+
+---
+
+## 19. Test suite reference — `web_smart_chromium.spec.ts`
+
+**Note first — this entire document, and this whole test file, only describe the *smart*, registry-driven
+path.** `apps/web/sample/tests/web_chromium.spec.ts` (and its `TodoListScreen`) is the **traditional POM
+counterpart**: locators are hardcoded directly in the screen class's constructor, there is no registry, no
+`SmartWebUtils`/`SmartWebLocator`, and no healing/suggestion mechanism at all — if a locator there breaks,
+the test just fails outright, exactly like any ordinary Playwright test. The two suites are intentionally
+kept separate (see the header comments in both `todo-list.screen.ts` and `web_chromium.spec.ts`) so the
+"before" (plain) and "after" (smart) approaches can be compared side by side against the same TodoMVC app.
+
+`web_smart_chromium.spec.ts` has 5 tests, `test.describe.configure({ mode: 'serial' })`, with both
+`SMART_LOCATOR` and `SMART_SNAPSHOT_CAPTURE` forced to `'true'` in `beforeEach` (§3).
+
+| # | Test title | Registry element(s) | Mechanism exercised | Outcome |
+|---|---|---|---|---|
+| 1 | `"smart locator fallback adds a todo without touching legacy tests"` | `newTodoInput` | `preferredLocator` resolves on the first try — no fallback, no healing, no suggestion | ✅ Passes normally |
+| 2 | `"smart locator heals from history when preferred and fallback miss"` | `newTodoInputHealed` | Preferred + fallback both fake → `createHealingResolver` finds a genuinely valid `history` candidate (`placeholder`) → `tier=auto, score=1.000` (§8) | ✅ Passes normally — healed silently (aside from the 🩹 annotation/warn, §13) |
+| 3 | `"smart locator suggestion search finds a real id (\"Did you mean\")"` | `toggleAllSuggested` | Preferred/fallback/history all fake → suggestion search (§11) scans the whole page, finds the real `#toggle-all` checkbox, which has an `id` → `constructedLocator: "#toggle-all"` | `test.fail()` — genuinely fails; asserted via `try/catch` + re-throw that the message contains `"Did you mean: #toggle-all"` |
+| 4 | `"smart locator suggestion search finds no id (\"Closest semantic match\")"` | `clearCompletedSuggested` | Same fake-everything setup, matches the real `.clear-completed` button — which has **no** `id` → semantics-only hint, no `constructedLocator` | `test.fail()` — asserted that the message contains `"Closest semantic match"` |
+| 5 | `"smart locator suggestion search finds nothing at all (no suggestion)"` | `completionSliderSuggested` | Recorded `role: "slider"` doesn't exist anywhere on the real page — every live node's role comparison fails, so no candidate ever reaches `SUGGESTION_MIN_SCORE` (0.5) → `findSuggestion` returns `undefined` entirely | `test.fail()` — asserted the **exact** bare message (no hint at all) and that `error.suggestion` is `undefined` |
+
+---
+

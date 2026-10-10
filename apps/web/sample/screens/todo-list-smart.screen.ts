@@ -12,6 +12,15 @@ export class TodoListSmartScreen {
   private readonly newTodoInput: SmartWebLocator;
   private readonly newTodoInputHealed: SmartWebLocator;
   private readonly todoItems: SmartWebLocator;
+  // Both preferred/fallback/history locators are deliberately fake for these three —
+  // every candidate misses, forcing resolve() all the way to the suggestion-search
+  // stage (§11). See SMART_LOCATOR_ARCHITECTURE.md §7.2 for the three possible outcomes:
+  // matched+id, matched+no-id, and (completionSliderSuggested) not matched at all —
+  // its role ("slider") doesn't exist anywhere on the real page, so no live node can
+  // score high enough to even be reported as a suggestion.
+  private readonly toggleAllSuggested: SmartWebLocator;
+  private readonly clearCompletedSuggested: SmartWebLocator;
+  private readonly completionSliderSuggested: SmartWebLocator;
 
   constructor(page: Page) {
     this.utils = SmartWebUtils.fromRegistryFile(
@@ -22,6 +31,9 @@ export class TodoListSmartScreen {
     this.newTodoInput = this.utils.getByElementId('newTodoInput');
     this.newTodoInputHealed = this.utils.getByElementId('newTodoInputHealed');
     this.todoItems = this.utils.getByElementId('todoItems');
+    this.toggleAllSuggested = this.utils.getByElementId('toggleAllSuggested');
+    this.clearCompletedSuggested = this.utils.getByElementId('clearCompletedSuggested');
+    this.completionSliderSuggested = this.utils.getByElementId('completionSliderSuggested');
   }
 
   async open(): Promise<void> {
@@ -53,6 +65,29 @@ export class TodoListSmartScreen {
   async expectTodoCount({ count }: { count: number }): Promise<void> {
     await test.step(`Expect ${count} smart todo item(s)`, async () => {
       await this.utils.expectCount(this.todoItems, count);
+    });
+  }
+
+  // expectVisible calls resolvePlaywrightLocator() directly with no try/catch wrapper, so the
+  // thrown LocatorActionError keeps its full "Did you mean"/"Closest semantic match" message and
+  // suggestion intact. fill()/click()/pressKey() now also preserve this (they re-throw an already-
+  // formed LocatorActionError as-is instead of re-wrapping it) — expectVisible is used here mainly
+  // for narrative clarity, not to work around any remaining asymmetry.
+  async expectToggleAllSuggested(): Promise<void> {
+    await test.step('Expect toggle-all (forces suggestion search — real element has an id)', async () => {
+      await this.utils.expectVisible(this.toggleAllSuggested);
+    });
+  }
+
+  async expectClearCompletedSuggested(): Promise<void> {
+    await test.step('Expect clear-completed (forces suggestion search — real element has no id)', async () => {
+      await this.utils.expectVisible(this.clearCompletedSuggested);
+    });
+  }
+
+  async expectCompletionSliderSuggested(): Promise<void> {
+    await test.step('Expect completion-slider (forces suggestion search — nothing on the real page matches at all)', async () => {
+      await this.utils.expectVisible(this.completionSliderSuggested);
     });
   }
 }

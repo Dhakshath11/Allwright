@@ -120,6 +120,93 @@
           "fallbackLocators": []
         }
       ]
+    },
+    {
+      "id": "toggleAllSuggested",
+      "semanticSnapshot": {
+        "role": "checkbox",
+        "name": "❯Mark all as complete",
+        "text": "on",
+        "tag": "input",
+        "neighbors": ["todoItems"]
+      },
+      "preferredLocator": {
+        "kind": "testId",
+        "value": "toggle-all-missing"
+      },
+      "fallbackLocators": [
+        {
+          "kind": "css",
+          "value": "input.toggle-all-v2-missing"
+        }
+      ],
+      "history": [
+        {
+          "preferredLocator": {
+            "kind": "css",
+            "value": "input.toggle-all-legacy-missing"
+          },
+          "fallbackLocators": []
+        }
+      ]
+    },
+    {
+      "id": "clearCompletedSuggested",
+      "semanticSnapshot": {
+        "role": "button",
+        "name": "Clear completed",
+        "text": "Clear completed",
+        "tag": "button",
+        "neighbors": []
+      },
+      "preferredLocator": {
+        "kind": "testId",
+        "value": "clear-completed-missing"
+      },
+      "fallbackLocators": [
+        {
+          "kind": "css",
+          "value": "button.clear-completed-v2-missing"
+        }
+      ],
+      "history": [
+        {
+          "preferredLocator": {
+            "kind": "css",
+            "value": "button.clear-completed-legacy-missing"
+          },
+          "fallbackLocators": []
+        }
+      ]
+    },
+    {
+      "id": "completionSliderSuggested",
+      "semanticSnapshot": {
+        "role": "slider",
+        "name": "Completion percentage",
+        "text": "",
+        "tag": "input",
+        "neighbors": []
+      },
+      "preferredLocator": {
+        "kind": "testId",
+        "value": "completion-slider-missing"
+      },
+      "fallbackLocators": [
+        {
+          "kind": "css",
+          "value": "input.completion-slider-v2-missing"
+        }
+      ],
+      "history": [
+        {
+          "preferredLocator": {
+            "kind": "css",
+            "value": "input.completion-slider-legacy-missing"
+          },
+          "fallbackLocators": []
+        }
+      ]
     }
   ]
 }
