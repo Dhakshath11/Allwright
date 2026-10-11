@@ -48,6 +48,27 @@
       ]
     },
     {
+      "id": "newTodoInputFallback",
+      "semanticSnapshot": {
+        "role": "textbox",
+        "name": "What needs to be done?",
+        "text": "What needs to be done?",
+        "tag": "input"
+      },
+      "preferredLocator": {
+        "kind": "role",
+        "role": "textbox",
+        "name": "Missing preferred todo input"
+      },
+      "fallbackLocators": [
+        {
+          "kind": "placeholder",
+          "value": "What needs to be done?"
+        }
+      ],
+      "history": []
+    },
+    {
       "id": "newTodoInputHealed",
       "semanticSnapshot": {
         "role": "textbox",
@@ -79,6 +100,62 @@
           "preferredLocator": {
             "kind": "css",
             "value": "input.new-todo"
+          },
+          "fallbackLocators": []
+        }
+      ]
+    },
+    {
+      "id": "newTodoInputReview",
+      "semanticSnapshot": {
+        "role": "textbox",
+        "name": "What needs to be done yesterday",
+        "text": "What needs to be done yesterday",
+        "tag": "input"
+      },
+      "preferredLocator": {
+        "kind": "testId",
+        "value": "review-todo-input-missing"
+      },
+      "fallbackLocators": [
+        {
+          "kind": "css",
+          "value": "input.review-todo-input-missing"
+        }
+      ],
+      "history": [
+        {
+          "preferredLocator": {
+            "kind": "placeholder",
+            "value": "What needs to be done?"
+          },
+          "fallbackLocators": []
+        }
+      ]
+    },
+    {
+      "id": "newTodoInputSimilarityFail",
+      "semanticSnapshot": {
+        "role": "button",
+        "name": "Unrelated control",
+        "text": "Nothing alike",
+        "tag": "button"
+      },
+      "preferredLocator": {
+        "kind": "testId",
+        "value": "fail-todo-input-missing"
+      },
+      "fallbackLocators": [
+        {
+          "kind": "css",
+          "value": "input.fail-todo-input-missing"
+        }
+      ],
+      "history": [
+        {
+          "preferredLocator": {
+            "kind": "placeholder",
+            "value": "What needs to be done?"
           },
           "fallbackLocators": []
         }
@@ -210,4 +287,3 @@
     }
   ]
 }
-

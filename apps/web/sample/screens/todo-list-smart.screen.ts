@@ -10,7 +10,10 @@ export class TodoListSmartScreen {
   private readonly utils: SmartWebUtils;
 
   private readonly newTodoInput: SmartWebLocator;
+  private readonly newTodoInputFallback: SmartWebLocator;
   private readonly newTodoInputHealed: SmartWebLocator;
+  private readonly newTodoInputReview: SmartWebLocator;
+  private readonly newTodoInputSimilarityFail: SmartWebLocator;
   private readonly todoItems: SmartWebLocator;
   // Both preferred/fallback/history locators are deliberately fake for these three —
   // every candidate misses, forcing resolve() all the way to the suggestion-search
@@ -29,7 +32,10 @@ export class TodoListSmartScreen {
     );
 
     this.newTodoInput = this.utils.getByElementId('newTodoInput');
+    this.newTodoInputFallback = this.utils.getByElementId('newTodoInputFallback');
     this.newTodoInputHealed = this.utils.getByElementId('newTodoInputHealed');
+    this.newTodoInputReview = this.utils.getByElementId('newTodoInputReview');
+    this.newTodoInputSimilarityFail = this.utils.getByElementId('newTodoInputSimilarityFail');
     this.todoItems = this.utils.getByElementId('todoItems');
     this.toggleAllSuggested = this.utils.getByElementId('toggleAllSuggested');
     this.clearCompletedSuggested = this.utils.getByElementId('clearCompletedSuggested');
@@ -49,10 +55,30 @@ export class TodoListSmartScreen {
     });
   }
 
+  async addTodoViaFallback({ text }: { text: string }): Promise<void> {
+    await test.step(`Add todo via fallback locator "${text}"`, async () => {
+      await this.utils.fill(this.newTodoInputFallback, text);
+      await this.utils.pressKey(this.newTodoInputFallback, 'Enter');
+    });
+  }
+
   async addTodoViaSimilarityHeal({ text }: { text: string }): Promise<void> {
     await test.step(`Add todo via similarity heal "${text}"`, async () => {
       await this.utils.fill(this.newTodoInputHealed, text);
       await this.utils.pressKey(this.newTodoInputHealed, 'Enter');
+    });
+  }
+
+  async addTodoViaReviewHeal({ text }: { text: string }): Promise<void> {
+    await test.step(`Add todo via review-tier similarity heal "${text}"`, async () => {
+      await this.utils.fill(this.newTodoInputReview, text);
+      await this.utils.pressKey(this.newTodoInputReview, 'Enter');
+    });
+  }
+
+  async triggerSimilarityFail(): Promise<void> {
+    await test.step('Trigger fail-tier similarity resolution', async () => {
+      await this.utils.fill(this.newTodoInputSimilarityFail, 'This should not be entered');
     });
   }
 

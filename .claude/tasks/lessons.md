@@ -506,3 +506,64 @@ Also: web does NOT need `aria.types.ts`. Playwright's own type covers all WAI-AR
 **Example:**
 - ❌ `import type { AriaRole } from '@playwright/test'` — type error: not exported
 - ✅ `type AriaRole = Parameters<Page['getByRole']>[0];` — self-syncing inference, no import needed
+
+---
+
+## 30. Smart-locator similarity tiers need page-driven resolver tests
+
+**Mistake:** Added direct `scoreCandidateSimilarity()` tests when the request was to verify what the web smart-locator actually does after preferred and fallback locators miss.
+
+**Rule:** When testing smart-locator auto/review/fail behavior, exercise the full resolver against a real page: make preferred and fallback strategies miss, let a history strategy resolve a live element, and assert the generated healing artifact's score/tier and the resulting heal or failure. Utility-only scoring tests do not cover this flow.
+
+**Example:**
+- ❌ Call `scoreCandidateSimilarity()` with two in-memory snapshots and assert `confidenceTierForScore()`.
+- ✅ Drive `SmartWebLocator` against the app and assert its `smart-healing-report-*` artifact after preferred/fallback miss and history resolution.
+
+---
+
+## 31. Name smart-locator tests by the resolution stage they actually exercise
+
+**Mistake:** A test titled "smart locator fallback…" passed on the **preferred** locator, so no fallback ever ran. The stage under test was misnamed and uncovered.
+
+**Rule:** Each stage gets its own registry element and test, and the test asserts the stage fired (annotation or healing artifact), not only the end result:
+- Preferred → `newTodoInput` (no annotation expected)
+- Fallback → `newTodoInputFallback` (preferred misses; assert `↩️ Resolved via fallback#N`)
+- History heal, `auto`/`review` → `newTodoInputHealed` / `newTodoInputReview` (preferred + fallback miss; assert artifact tier/score)
+- History rejected, `fail` → `newTodoInputSimilarityFail` (assert `LocatorActionError` + fail-tier artifact)
+- Suggestion only → `toggleAllSuggested` / `clearCompletedSuggested` / `completionSliderSuggested`
+
+**Example:**
+- ❌ Test named "falls back" that uses a registry entry whose preferred locator resolves.
+- ✅ Dedicated `newTodoInputFallback` entry with a fake preferred locator and a valid placeholder fallback.
+
+---
+
+## 32. Healing only ever replays HISTORY — exhausting history yields a suggestion, never a heal
+
+**Mistake:** Assumed a failed similarity check could still auto-recover from something on the page.
+
+**Rule:** Resolution order is preferred → authored fallbacks → history candidates scored against `semanticSnapshot` (`auto` ≥0.95, `review` ≥0.85 heal; `<0.85` rejects) → last-resort suggestion search. The suggestion is a human-facing hint and is **never applied**; the action still throws. Use it to design registry data:
+- To demo/test a heal, the registry needs at least one valid `history` strategy.
+- Tier-controlling data lives in `semanticSnapshot` — tune it (not the locator) to move a score between `auto`, `review`, `fail`. `newTodoInputReview` uses a slightly different recorded name/text to land at ~0.881.
+- Weak/rejected history and "no history at all" both end in the suggestion stage.
+
+**Example:**
+- ❌ Expect `fail`-tier similarity to recover on its own.
+- ✅ Assert the fail-tier artifact, the thrown `LocatorActionError`, and (when present) the suggestion hint.
+
+---
+
+## 33. Playwright report annotations: `serial`, `fail`, and duplicate `info` rows are expected
+
+**Mistake:** Read the report's annotation block as duplicated/conflicting results.
+
+**Rule:** Annotations are test metadata, not separate results:
+- `serial` — from `test.describe.configure({ mode: 'serial' })`.
+- `fail` — from `test.fail()`: the test is **expected** to throw. Unrelated to the `fail` similarity tier.
+- `info` rows — pushed by `SmartWebLocator.resolve()` on each recovery (`↩️` fallback, `🩹` heal, `❗` suggestion).
+
+Adding a todo does two actions (`fill`, then `pressKey:Enter`), and each re-resolves the locator, so a fallback or heal annotation appears **twice**. Both rows are real events; their text currently omits the action, so they look like duplicates.
+
+**Example:**
+- ❌ Treat two identical `info: Resolved via fallback#1…` rows as a bug.
+- ✅ Know each row is one action's resolution. If clarity is needed, include action and element id in the annotation text (e.g. `fallback: newTodoInputFallback — fill → placeholder:…`).

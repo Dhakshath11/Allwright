@@ -14,7 +14,7 @@ test.beforeEach(() => {
   process.env['SMART_SNAPSHOT_CAPTURE'] = 'true';
 });
 
-test('smart locator fallback adds a todo without touching legacy tests', async ({ page }) => {
+test('smart locator preferred adds a todo without touching legacy tests', async ({ page }) => {
   const todos = new TodoListSmartScreen(page);
 
   await todos.open();
@@ -25,14 +25,17 @@ test('smart locator fallback adds a todo without touching legacy tests', async (
   await todos.expectTodoCount({ count: 1 });
 });
 
-test('smart locator heals from history when preferred and fallback miss', async ({ page }) => {
+test('smart locator falls back when the preferred locator misses', async ({ page }) => {
   const todos = new TodoListSmartScreen(page);
 
   await todos.open();
-  await todos.expectInputReady();
+  await todos.addTodoViaFallback({ text: 'Fallback locator todo' });
 
-  await todos.addTodoViaSimilarityHeal({ text: 'Smart healed todo' });
-
+  expect(
+    test.info().annotations.some(annotation =>
+      annotation.description?.includes('Resolved via fallback#1:placeholder:What needs to be done?'),
+    ),
+  ).toBe(true);
   await todos.expectTodoCount({ count: 1 });
 });
 
@@ -55,6 +58,10 @@ test('smart locator heals from history when preferred and fallback miss', async 
 // unexpectedly stops failing (e.g. a future regression accidentally makes it
 // resolve), test.fail()'s own contract flags that too ("expected to fail but
 // didn't").
+
+// NOTE: When Preffered, Fallback and Histroy fails, it will be handled by the suggestion search stage - No Update the locator, but Teir priority is considered.
+// If the ID found it returns as suggestion, if not the semantics and none found — then error is thrown.
+// Before that in history via Teir priority, the system will attempt to resolve using historical locators based on their priority.
 
 test.fail('smart locator suggestion search finds a real id ("Did you mean")', async ({ page }) => {
   const todos = new TodoListSmartScreen(page);
@@ -116,4 +123,81 @@ test.fail('smart locator suggestion search finds nothing at all (no suggestion)'
     expect(locatorError.suggestion).toBeUndefined();
     throw error;
   }
+});
+
+
+// ---- Similiarity Score ----
+
+interface HealingTestArtifact {
+  tier: 'auto' | 'review' | 'fail';
+  score?: number;
+  failedCandidates: string[];
+  selectedCandidate?: string;
+}
+
+const getHealingArtifact = (elementId: string): HealingTestArtifact => {
+  const attachment = [...test.info().attachments]
+    .reverse()
+    .find(item => item.name === `smart-healing-report-${elementId}`);
+  if (attachment?.body === undefined) {
+    throw new Error(`Healing report attachment not found for ${elementId}`);
+  }
+
+  return JSON.parse(attachment.body.toString()) as HealingTestArtifact;
+};
+
+const expectAuthoredLocatorsToMiss = (artifact: HealingTestArtifact): void => {
+  expect(artifact.failedCandidates).toHaveLength(2);
+  expect(artifact.failedCandidates[0]).toContain('preferred:');
+  expect(artifact.failedCandidates[1]).toContain('fallback#1:');
+  expect(artifact.selectedCandidate).toContain('history:');
+};
+
+test('smart locator auto-heals when semantic similarity is high', async ({ page }) => {
+  const todos = new TodoListSmartScreen(page);
+
+  await todos.open();
+  await todos.addTodoViaSimilarityHeal({ text: 'Auto-tier healed todo' });
+
+  const artifact = getHealingArtifact('newTodoInputHealed');
+  expectAuthoredLocatorsToMiss(artifact);
+  expect(artifact.tier).toBe('auto');
+  expect(artifact.score).toBeGreaterThanOrEqual(0.95);
+  await todos.expectTodoCount({ count: 1 });
+});
+
+test('smart locator review-heals when semantic similarity is moderate', async ({ page }) => {
+  const todos = new TodoListSmartScreen(page);
+
+  await todos.open();
+  await todos.addTodoViaReviewHeal({ text: 'Review-tier healed todo' });
+
+  const artifact = getHealingArtifact('newTodoInputReview');
+  expectAuthoredLocatorsToMiss(artifact);
+  expect(artifact.tier).toBe('review');
+  expect(artifact.score).toBeGreaterThanOrEqual(0.85);
+  expect(artifact.score).toBeLessThan(0.95);
+  expect(test.info().annotations.some(annotation =>
+    annotation.description?.includes('Healed via history — tier=review'),
+  )).toBe(true);
+  await todos.expectTodoCount({ count: 1 });
+});
+
+test('smart locator fails when semantic similarity is too low', async ({ page }) => {
+  const todos = new TodoListSmartScreen(page);
+
+  await todos.open();
+
+  let resolutionError: unknown;
+  try {
+    await todos.triggerSimilarityFail();
+  } catch (error) {
+    resolutionError = error;
+  }
+
+  expect(resolutionError).toBeInstanceOf(LocatorActionError);
+  const artifact = getHealingArtifact('newTodoInputSimilarityFail');
+  expectAuthoredLocatorsToMiss(artifact);
+  expect(artifact.tier).toBe('fail');
+  expect(artifact.score).toBeLessThan(0.85);
 });

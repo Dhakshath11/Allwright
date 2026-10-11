@@ -901,13 +901,13 @@ POM shape as every other screen in the repo (see [CLAUDE.md's screen object patt
 except its private `utils` field is `SmartWebUtils` (not `WebUtils`) and its locator fields are
 `SmartWebLocator` (not `WebLocator`), constructed once via `SmartWebUtils.fromRegistryFile(page, resolveRegistryPath('todo-list-smart.registry.json'))`
 in the constructor. Methods: `open()` (calls `utils.goto`, which also captures a baseline snapshot
-graph), `addTodo`/`addTodoViaSimilarityHeal` (fill + press Enter, one per registry element under
-test), `expectInputReady()`, `expectTodoCount({ count })`, and `expectToggleAllSuggested()`/
+graph), `addTodo`/`addTodoViaFallback`/`addTodoViaSimilarityHeal`/`addTodoViaReviewHeal` (fill + press Enter, one per registry element under
+test), `triggerSimilarityFail()`, `expectInputReady()`, `expectTodoCount({ count })`, and `expectToggleAllSuggested()`/
 `expectClearCompletedSuggested()`/`expectCompletionSliderSuggested()` (each a thin wrapper around
 `utils.expectVisible` over the three suggestion-stage elements above — see §19 for why `expectVisible`
 specifically, and the full per-test breakdown).
 
-**`apps/web/sample/tests/web_smart_chromium.spec.ts`** — 5 tests total; see §19 for the complete,
+**`apps/web/sample/tests/web_smart_chromium.spec.ts`** — 8 tests total; see §19 for the complete,
 per-test reference (registry element exercised, assertion style, and expected report outcome for
 each).
 
@@ -1007,16 +1007,18 @@ the test just fails outright, exactly like any ordinary Playwright test. The two
 kept separate (see the header comments in both `todo-list.screen.ts` and `web_chromium.spec.ts`) so the
 "before" (plain) and "after" (smart) approaches can be compared side by side against the same TodoMVC app.
 
-`web_smart_chromium.spec.ts` has 5 tests, `test.describe.configure({ mode: 'serial' })`, with both
+`web_smart_chromium.spec.ts` has 8 tests, `test.describe.configure({ mode: 'serial' })`, with both
 `SMART_LOCATOR` and `SMART_SNAPSHOT_CAPTURE` forced to `'true'` in `beforeEach` (§3).
 
 | # | Test title | Registry element(s) | Mechanism exercised | Outcome |
 |---|---|---|---|---|
-| 1 | `"smart locator fallback adds a todo without touching legacy tests"` | `newTodoInput` | `preferredLocator` resolves on the first try — no fallback, no healing, no suggestion | ✅ Passes normally |
-| 2 | `"smart locator heals from history when preferred and fallback miss"` | `newTodoInputHealed` | Preferred + fallback both fake → `createHealingResolver` finds a genuinely valid `history` candidate (`placeholder`) → `tier=auto, score=1.000` (§8) | ✅ Passes normally — healed silently (aside from the 🩹 annotation/warn, §13) |
-| 3 | `"smart locator suggestion search finds a real id (\"Did you mean\")"` | `toggleAllSuggested` | Preferred/fallback/history all fake → suggestion search (§11) scans the whole page, finds the real `#toggle-all` checkbox, which has an `id` → `constructedLocator: "#toggle-all"` | `test.fail()` — genuinely fails; asserted via `try/catch` + re-throw that the message contains `"Did you mean: #toggle-all"` |
-| 4 | `"smart locator suggestion search finds no id (\"Closest semantic match\")"` | `clearCompletedSuggested` | Same fake-everything setup, matches the real `.clear-completed` button — which has **no** `id` → semantics-only hint, no `constructedLocator` | `test.fail()` — asserted that the message contains `"Closest semantic match"` |
-| 5 | `"smart locator suggestion search finds nothing at all (no suggestion)"` | `completionSliderSuggested` | Recorded `role: "slider"` doesn't exist anywhere on the real page — every live node's role comparison fails, so no candidate ever reaches `SUGGESTION_MIN_SCORE` (0.5) → `findSuggestion` returns `undefined` entirely | `test.fail()` — asserted the **exact** bare message (no hint at all) and that `error.suggestion` is `undefined` |
+| 1 | `"smart locator preferred adds a todo without touching legacy tests"` | `newTodoInput` | `preferredLocator` resolves on the first try — no fallback, no healing, no suggestion | ✅ Passes normally |
+| 2 | `"smart locator falls back when the preferred locator misses"` | `newTodoInputFallback` | The preferred role/name does not exist; the valid placeholder fallback resolves the input. The test asserts the fallback recovery annotation. | ✅ Passes normally |
+| 3 | `"smart locator auto-heals when semantic similarity is high"` | `newTodoInputHealed` | Preferred + fallback miss; history resolves the real input with `tier=auto` and score ≥0.95. The healing artifact is asserted. | ✅ Passes normally |
+| 4 | `"smart locator review-heals when semantic similarity is moderate"` | `newTodoInputReview` | Preferred + fallback miss; history resolves the real input with `tier=review` and score in [0.85, 0.95). The review annotation and healing artifact are asserted. | ✅ Passes normally |
+| 5 | `"smart locator fails when semantic similarity is too low"` | `newTodoInputSimilarityFail` | Preferred + fallback miss; history finds the real input but its semantic score is below 0.85, so healing is rejected and the action throws. The fail-tier artifact is asserted. | ✅ Passes normally — the expected locator failure is caught and asserted |
+| 6 | `"smart locator suggestion search finds a real id (\"Did you mean\")"` | `toggleAllSuggested` | Preferred/fallback/history all fake → suggestion search (§11) scans the whole page, finds the real `#toggle-all` checkbox, which has an `id` → `constructedLocator: "#toggle-all"` | `test.fail()` — genuinely fails; asserted via `try/catch` + re-throw that the message contains `"Did you mean: #toggle-all"` |
+| 7 | `"smart locator suggestion search finds no id (\"Closest semantic match\")"` | `clearCompletedSuggested` | Same fake-everything setup, matches the real `.clear-completed` button — which has **no** `id` → semantics-only hint, no `constructedLocator` | `test.fail()` — asserted that the message contains `"Closest semantic match"` |
+| 8 | `"smart locator suggestion search finds nothing at all (no suggestion)"` | `completionSliderSuggested` | Recorded `role: "slider"` doesn't exist anywhere on the real page — every live node's role comparison fails, so no candidate ever reaches `SUGGESTION_MIN_SCORE` (0.5) → `findSuggestion` returns `undefined` entirely | `test.fail()` — asserted the **exact** bare message (no hint at all) and that `error.suggestion` is `undefined` |
 
 ---
-
